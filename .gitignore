@@ -6,3 +6,6 @@
 /watertap3/docs/build/
 /watertap3/watertap3/notebooks/
 /watertap3/watertap3/.ipynb_checkpoints/
+# Byte-compiled / optimized / DLL files
+/watertap3/watertap3/__pycache__/
+*.py[cod]
