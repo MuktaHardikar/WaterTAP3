@@ -320,7 +320,7 @@ kbhdp,nawi,dwi,municipal_drinking,use,municipal_drinking,,,
 ,,,,,,,,
 MUNICIPAL,,,,,,,,
 ,,,,,,,,
-big_spring,nawi,baseline,holding_tank,intake,onsite_storage,microfiltration,outlet,"{'water_type': ['big_spring_feed'], 'avg_storage_time': 24, 'surge_cap': 0.2}"
+big_spring,nawi,baseline,well_field,intake,well_field,microfiltration,outlet,{'water_type': ['big_spring_feed']}
 big_spring,nawi,baseline,microfiltration,treatment,microfiltration,reverse_osmosis,outlet,
 big_spring,nawi,baseline,reverse_osmosis,treatment,reverse_osmosis,uv_aop,outlet,{'erd': 'no'}
 big_spring,nawi,baseline,uv_aop,treatment,uv_aop,treated_storage,outlet,"{'chemical_name': 'Hydrogen_Peroxide', 'dose': 5, 'uv_dose': 300, 'aop': True, 'uvt_in': 0.95}"
@@ -328,7 +328,7 @@ big_spring,nawi,baseline,treated_storage,treatment,treated_storage,municipal_dri
 big_spring,nawi,baseline,municipal_drinking,use,municipal_drinking,,,
 big_spring,nawi,baseline,surface_discharge,waste,surface_discharge,,,
 ,,,,,,,,
-big_spring,nawi,dwi_a,holding_tank,intake,onsite_storage,microfiltration,outlet,"{'water_type': ['big_spring_feed'], 'avg_storage_time': 24, 'surge_cap': 0.2}"
+big_spring,nawi,dwi_a,well_field,intake,well_field,microfiltration,outlet,{'water_type': ['big_spring_feed']}
 big_spring,nawi,dwi_a,microfiltration,treatment,microfiltration,"reverse_osmosis,deep_well_injection","outlet,waste",
 big_spring,nawi,dwi_a,reverse_osmosis,treatment,reverse_osmosis,"uv_aop,deep_well_injection","outlet,waste",{'erd': 'no'}
 big_spring,nawi,dwi_a,uv_aop,treatment,uv_aop,treated_storage,outlet,"{'chemical_name': 'Hydrogen_Peroxide', 'dose': 5, 'uv_dose': 300, 'aop': True, 'uvt_in': 0.95}"
@@ -336,7 +336,7 @@ big_spring,nawi,dwi_a,treated_storage,treatment,treated_storage,municipal_drinki
 big_spring,nawi,dwi_a,municipal_drinking,use,municipal_drinking,,,
 big_spring,nawi,dwi_a,deep_well_injection,waste,deep_well_injection,,,"{'pipe_distance': 10, 'lift_height': 400}"
 ,,,,,,,,
-big_spring,nawi,dwi_b,holding_tank,intake,onsite_storage,microfiltration,outlet,"{'water_type': ['big_spring_feed'], 'avg_storage_time': 24, 'surge_cap': 0.2}"
+big_spring,nawi,dwi_b,well_field,intake,well_field,microfiltration,outlet,{'water_type': ['big_spring_feed']}
 big_spring,nawi,dwi_b,microfiltration,treatment,microfiltration,"ro_first_stage,deep_well_injection","outlet,waste",
 big_spring,nawi,dwi_b,reverse_osmosis,treatment,ro_first_stage,"uv_aop,passthrough","outlet,waste",{'erd': 'no'}
 big_spring,nawi,dwi_b,basic_unit,treatment,passthrough,ozone,outlet,{'unit_process_name': 'passthrough'}
@@ -350,7 +350,7 @@ big_spring,nawi,dwi_b,municipal_drinking,use,municipal_drinking,,,
 big_spring,nawi,dwi_b,deep_well_injection,waste,deep_well_injection,,,"{'pipe_distance': 10, 'lift_height': 400}"
 big_spring,nawi,dwi_b,surface_discharge,waste,surface_discharge,,,
 ,,,,,,,,
-big_spring,nawi,zld_a,holding_tank,intake,onsite_storage,microfiltration,outlet,"{'water_type': ['big_spring_feed'], 'avg_storage_time': 24, 'surge_cap': 0.2}"
+big_spring,nawi,zld_a,well_field,intake,well_field,microfiltration,outlet,{'water_type': ['big_spring_feed']}
 big_spring,nawi,zld_a,microfiltration,treatment,microfiltration,"ro_first_stage,evaporation_pond","outlet,waste",
 big_spring,nawi,zld_a,reverse_osmosis,treatment,ro_first_stage,"uv_aop,passthrough","outlet,waste",{'erd': 'no'}
 big_spring,nawi,zld_a,basic_unit,treatment,passthrough,ozone,outlet,{'unit_process_name': 'passthrough'}
@@ -364,7 +364,7 @@ big_spring,nawi,zld_a,evaporation_pond,treatment,evaporation_pond,landfill_zld,w
 big_spring,nawi,zld_a,municipal_drinking,use,municipal_drinking,,,
 big_spring,nawi,zld_a,landfill_zld,waste,landfill_zld,,,
 ,,,,,,,,
-big_spring,nawi,zld_b,holding_tank,intake,onsite_storage,microfiltration,outlet,"{'water_type': ['big_spring_feed'], 'avg_storage_time': 24, 'surge_cap': 0.2}"
+big_spring,nawi,zld_b,well_field,intake,well_field,microfiltration,outlet,{'water_type': ['big_spring_feed']}
 big_spring,nawi,zld_b,microfiltration,treatment,microfiltration,ro_first_stage,outlet,
 big_spring,nawi,zld_b,reverse_osmosis,treatment,ro_first_stage,"uv_aop,passthrough","outlet,waste",{'erd': 'no'}
 big_spring,nawi,zld_b,basic_unit,treatment,passthrough,ozone,outlet,{'unit_process_name': 'passthrough'}
@@ -379,7 +379,7 @@ big_spring,nawi,zld_b,evaporation_pond,treatment,evaporation_pond,landfill_zld,w
 big_spring,nawi,zld_b,municipal_drinking,use,municipal_drinking,,,
 big_spring,nawi,zld_b,landfill_zld,waste,landfill_zld,,,
 ,,,,,,,,
-big_spring,nawi,zld_c,holding_tank,intake,onsite_storage,microfiltration,outlet,"{'water_type': ['big_spring_feed'], 'avg_storage_time': 24, 'surge_cap': 0.2}"
+big_spring,nawi,zld_c,well_field,intake,well_field,microfiltration,outlet,{'water_type': ['big_spring_feed']}
 big_spring,nawi,zld_c,microfiltration,treatment,microfiltration,ro_first_stage,outlet,{'unit_process_name': 'microfiltration'}
 big_spring,nawi,zld_c,reverse_osmosis,treatment,ro_first_stage,"uv_aop,passthrough","outlet,waste",{'erd': 'no'}
 big_spring,nawi,zld_c,basic_unit,treatment,passthrough,ozone,outlet,{'unit_process_name': 'passthrough'}

@@ -24,6 +24,7 @@ beef,baseline,beef_processing,phosphates,0.097,kg/m3,nawi
 beef,baseline,beef_processing,tds,1.5697,kg/m3,nawi
 beef,baseline,beef_processing,tss,3.87,kg/m3,nawi
 big_spring,baseline,big_spring_feed,flow,0.075,m3/s,nawi
+big_spring,baseline,big_spring_feed,toc,0,kg/m3,nawi
 big_spring,baseline,big_spring_feed,tds,2.257,kg/m3,nawi
 carlsbad,baseline,seawater,boron,0.0044,kg/m3,nawi
 carlsbad,baseline,seawater,bromide,0.0663,kg/m3,nawi
