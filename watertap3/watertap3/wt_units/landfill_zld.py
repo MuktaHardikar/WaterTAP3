@@ -28,11 +28,11 @@ class UnitProcess(WT3UnitProcess):
         self.total_mass = total_mass = self.density * self.flow_in
         self.chem_dict = {}
         landfill_cap = (self.total_mass / self.capacity_basis) ** self.cap_scaling_exp
-        transport_fixed_capital = 3.42
-        if unit_params['distance'] == 0:
-            return landfill_cap
-        else:
-            return landfill_cap + transport_fixed_capital
+        # transport_fixed_capital = 3.42
+        # if unit_params['distance'] == 0:
+        return landfill_cap
+        # else:
+            # return landfill_cap + transport_fixed_capital
 
     def elect(self):
         electricity = 0
@@ -45,7 +45,7 @@ class UnitProcess(WT3UnitProcess):
         financials.create_costing_block(self, basis_year, tpec_or_tic)
         self.costing.fixed_cap_inv_unadjusted = Expression(expr=self.fixed_cap(unit_params),
                                                            doc='Unadjusted fixed capital investment')
-        
+
         self.electricity = Expression(expr=self.elect(),
                                       doc='Electricity intensity [kwh/m3]')
         
