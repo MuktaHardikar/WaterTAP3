@@ -74,6 +74,7 @@ def watertap_setup(dynamic=False, case_study=None, reference='nawi', scenario=No
         source_scenario = scenario
 
     df = pd.read_csv('data/treatment_train_setup.csv') # Read in treatment train input sheet.
+    # df = pd.read_csv('data/treatment_train_big_spring_dwi_a_sensitivity.csv') # Read in treatment train input sheet.
 
     water_type_list = []
     if new_df_units is not None:
@@ -603,11 +604,11 @@ def set_bounds(m=None, source_water_category=None):
         min_area = 500
         min_pressure = 5
     else:
-        feed_flux_max = 30  # lmh
+        feed_flux_max = 50 #30  # lmh
         feed_flux_min = 8  # lmh
         a = [2, 7]
         b = [0.2, 0.7]
-        max_pressure = 25
+        max_pressure = 40 #25
         min_area = 250
         min_pressure = 5
 

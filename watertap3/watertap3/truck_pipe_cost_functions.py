@@ -3,7 +3,7 @@ import math
 from pyomo.environ import units as pyunits
 import pandas as pd
 
-def truck_costing(distance, state='TX', wacc = 0.1, plant_lifetime_yrs = 30,fuel_price_file_path = '/Users/mhardika/Documents/watertap3/WaterTAP3/watertap3/watertap3/data/fuel_costs.csv'):
+def truck_costing(distance, state='TX', wacc = 0.05, plant_lifetime_yrs = 30,fuel_price_file_path = '/Users/mhardika/Documents/watertap3/WaterTAP3/watertap3/watertap3/data/fuel_costs.csv'):
     '''
     Reference: 
     Marufuzzaman, M., et al. (2015). "Truck versus pipeline transportation cost analysis of wastewater sludge." 
@@ -16,18 +16,22 @@ def truck_costing(distance, state='TX', wacc = 0.1, plant_lifetime_yrs = 30,fuel
     
     '''
 
+    if distance == 0:
+        return 0
+    distance = distance*pyunits.km
+    distance = pyunits.convert(distance,to_units = pyunits.miles)
     truck_capacity = 30    #m3
     loading_unloading_rate = 0.8*60    #m3/h
     loading_unloading_time = truck_capacity/loading_unloading_rate  #h
     additional_loading_unloading_time = 20/60   #h
-    days_operation = 350
+    days_operation = 365
     plant_utilization = days_operation/365
 
     total_loading_unloading_time = 2*loading_unloading_time + additional_loading_unloading_time
 
     # Fixed cost components
 
-    cost_ownership = 26810   #$
+    cost_ownership = 26810   #$ --> The salvage value is already deducted so the capital recovery factor was not included for the truck fixed capital cost
     annual_sales_tax = 720   #$
     license_fees_taxes = 2086  #$
     management_overhead = 13020  #$
@@ -42,14 +46,19 @@ def truck_costing(distance, state='TX', wacc = 0.1, plant_lifetime_yrs = 30,fuel
     
     capital_recovery_factor = (wacc * (1 + wacc) ** plant_lifetime_yrs) / (((1 + wacc) ** plant_lifetime_yrs) - 1)
 
-    total_fixed_capital_cost = total_fixed_capital_cost
+    # Capital recovery factor in paper
+    wacc_1 = 0.1
+    plant_lifetime_yrs_1 = 30
+    capital_recovery_factor_1 = (wacc_1 * (1 + wacc_1) ** plant_lifetime_yrs_1) / (((1 + wacc_1) ** plant_lifetime_yrs_1) - 1)
+
+    total_fixed_capital_cost = total_fixed_capital_cost * capital_recovery_factor / capital_recovery_factor_1
     
 
     # Variable cost components
 
     # reading fuel costs as a function of state
     fuel_df = pd.read_csv(fuel_price_file_path)
-    fuel_price = fuel_df.loc[fuel_df['state_code']=='TX']['diesel_cost'] #$/gal --> function of state
+    fuel_price = fuel_df.loc[fuel_df['state_code']==state]['diesel_cost'].values[0] #$/gal --> function of state
     mileage = 5.85 #gal/mil (average of 5.1 and 6.6)
     fuel_cost_mile = fuel_price/mileage #$/mile
     labor_cost = 0.82 #$/mile
@@ -59,10 +68,10 @@ def truck_costing(distance, state='TX', wacc = 0.1, plant_lifetime_yrs = 30,fuel
     total_variable_cost = (fuel_cost_mile + labor_cost + 
                            maintenance_repair_cost + tire_cost )/truck_capacity   #$/mile/m3
 
-    return  total_fixed_capital_cost + total_variable_cost * pyunits.convert(distance,to_units=pyunits.miles)
+    return  (total_fixed_capital_cost + total_variable_cost * distance())
 
 
-def pipe_costing(capacity, distance, wacc = 0.1, plant_lifetime_yrs = 30):
+def pipe_costing(capacity, distance, wacc = 0.05, plant_lifetime_yrs = 30):
     '''
     Reference: Marufuzzaman, M., et al. (2015). "Truck versus pipeline transportation cost analysis of wastewater sludge." 
     Transportation Research Part A: Policy and Practice 74: 14-30.
@@ -70,6 +79,9 @@ def pipe_costing(capacity, distance, wacc = 0.1, plant_lifetime_yrs = 30):
     This function return the LCOW of transport through pipes as a function of distance and volume
     '''
 
+
+    if distance == 0:
+        return 0
     # Inputs
     
     storage_capacity = capacity* pyunits.m**3/pyunits.day
@@ -158,9 +170,9 @@ def pipe_costing(capacity, distance, wacc = 0.1, plant_lifetime_yrs = 30):
     total_misc_variable_capital_cost = ( pipe_cost + construction_cost +  labor_cost  + road_access_cost_variable_cost )
 
 
-    total_variable_capital_cost = (total_booster_station_cost + total_misc_variable_capital_cost)*capital_recovery_factor/plant_utilization #$/m3
+    total_variable_capital_cost = (total_booster_station_cost + total_misc_variable_capital_cost)*capital_recovery_factor/plant_utilization #$
 
     # Total O&M costs
     total_onm_costs = pipe_maintenance_cost + pump_maintenance_cost + total_electricity_cost
 
-    return (total_fixed_capital_cost() + total_variable_capital_cost() + total_onm_costs())/(storage_capacity()*350)
+    return (total_fixed_capital_cost() + total_variable_capital_cost() + total_onm_costs())/(storage_capacity()*365)
