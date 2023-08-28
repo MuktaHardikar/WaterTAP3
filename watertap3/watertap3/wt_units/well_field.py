@@ -13,8 +13,14 @@ class UnitProcess(WT3UnitProcess):
 
     def fixed_cap(self, unit_params):
         self.pipe_cost_factor_dict = {'emwd': 82600}
-        time = self.flowsheet().config.time.first()
-        self.flow_in = pyunits.convert(self.flow_vol_in[time], to_units=pyunits.m ** 3 / pyunits.hr)
+        time = self.flowsheet().config.time
+        t = time.first()
+        self.flow_in = Var(time, initialize = 0.1, domain=NonNegativeReals,units=pyunits.m**3/pyunits.hr)
+        if 'flow_in' in unit_params.keys():
+            # print('flow_in in unit params')
+            self.flow_in[t].fix(unit_params['flow_in'])
+        else:
+            self.flow_in[t] = pyunits.convert(self.flow_vol_in[t], to_units=pyunits.m**3 / pyunits.hr)()
         self.base_fixed_cap_cost = 4731.6
         self.cap_scaling_exp = 0.9196
         self.chem_dict = {}
@@ -27,10 +33,10 @@ class UnitProcess(WT3UnitProcess):
             except:
                 self.pipe_cost_basis = 35000
             self.pipe_fixed_cap_cost = (self.pipe_cost_basis * self.pipe_distance * self.pipe_diameter)
-            well_cap = (self.base_fixed_cap_cost * self.flow_in ** self.cap_scaling_exp + self.pipe_fixed_cap_cost) * 1E-6
+            well_cap = (self.base_fixed_cap_cost * self.flow_in[t] ** self.cap_scaling_exp + self.pipe_fixed_cap_cost) * 1E-6
             return well_cap
         except:
-            well_cap = self.base_fixed_cap_cost * self.flow_in ** self.cap_scaling_exp * 1E-6
+            well_cap = self.base_fixed_cap_cost * self.flow_in[t] ** self.cap_scaling_exp * 1E-6
             return well_cap
 
     def elect(self, unit_params):
@@ -53,8 +59,8 @@ class UnitProcess(WT3UnitProcess):
                     self.lift_height.fix(100)
             except (KeyError, TypeError) as e:
                 self.lift_height.fix(100)
-            flow_in_gpm = pyunits.convert(self.flow_vol_in[t], to_units=pyunits.gallons / pyunits.minute)
-            electricity = (0.746 * flow_in_gpm * self.lift_height[t] / (3960 * self.pump_eff * self.motor_eff)) / self.flow_in
+            flow_in_gpm = pyunits.convert(self.flow_in[t], to_units=pyunits.gallons / pyunits.minute)
+            electricity = (0.746 * flow_in_gpm * self.lift_height[t] / (3960 * self.pump_eff * self.motor_eff)) / self.flow_in[t]
             return electricity
         else:
             return 0

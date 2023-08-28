@@ -2,6 +2,8 @@ import numpy as np
 import math
 from pyomo.environ import units as pyunits
 import pandas as pd
+import requests
+import urllib
 
 def truck_costing(distance, state='TX', wacc = 0.05, plant_lifetime_yrs = 30,fuel_price_file_path = '/Users/mhardika/Documents/watertap3/WaterTAP3/watertap3/watertap3/data/fuel_costs.csv'):
     '''
@@ -71,7 +73,7 @@ def truck_costing(distance, state='TX', wacc = 0.05, plant_lifetime_yrs = 30,fue
     return  (total_fixed_capital_cost + total_variable_cost * distance())
 
 
-def pipe_costing(capacity, distance, wacc = 0.05, plant_lifetime_yrs = 30):
+def pipe_costing(capacity, distance, elev_gain = 1e-5, wacc = 0.05, plant_lifetime_yrs = 30,electricity_rate = 0.06):
     '''
     Reference: Marufuzzaman, M., et al. (2015). "Truck versus pipeline transportation cost analysis of wastewater sludge." 
     Transportation Research Part A: Policy and Practice 74: 14-30.
@@ -122,21 +124,21 @@ def pipe_costing(capacity, distance, wacc = 0.05, plant_lifetime_yrs = 30):
     # Variable -function of distance # $/m3
 
     # Booster station costs
-
     booster_pump_cost = inlet_pump_cost
     booster_pump_installation_cost = 0.1 * total_fixed_capital_cost/capital_recovery_factor*plant_utilization
 
     # Number of booster pumps 
-
     friction_factor = 0.005
     density = 1000*pyunits.kg/pyunits.m**3
+    g = 9.8*pyunits.m/pyunits.s**2
     
-    deltaP_grad =  friction_factor*density*(pumping_velocity**2)/(2*pyunits.convert(pipe_diameter,to_units = pyunits.m))*1e-5  #bar/m
- 
+    deltaP_grad =  friction_factor*density*(pumping_velocity**2)/(2*pyunits.convert(pipe_diameter,to_units = pyunits.m))*1e-5 #bar/m
+    deltaP_elev_gain = density*g*elev_gain*pyunits.m/pyunits.convert(distance,pyunits.m) * 1e-5
+
     Pmax = 15 # maximum allowable pressure in the pipe
     Pmin = 2  # minimum pressure after which there's no flow
 
-    lx = (Pmax-Pmin)/deltaP_grad
+    lx = (Pmax-Pmin)/(deltaP_grad() + deltaP_elev_gain())
     N = pyunits.convert(distance,to_units = pyunits.m)/lx
     
     N = math.ceil(N())-1
@@ -160,9 +162,20 @@ def pipe_costing(capacity, distance, wacc = 0.05, plant_lifetime_yrs = 30):
     labor_cost = 29.2*man_hours/capital_recovery_factor*plant_utilization/100/1.6*distance()
 
     # Following method in WT2 water_pumping_station
-    electricity_intensity = pyunits.convert((N+1)*pump_power,to_units = pyunits.kW) 
-    electricity_rate = 0.06 # $/kwh
-    total_electricity_cost = electricity_rate * electricity_intensity *  days_operation * 24
+    electricity = pyunits.convert((N+1)*pump_power,to_units = pyunits.kW) 
+
+    # Including elevation gain in calculating electricity
+    # pump_eff = 0.9
+    # motor_eff = 0.9
+    # lift_height = elev_gain
+    # flow = pumping_velocity* pipe_csa
+    # flow_in_gpm  = flow*(pyunits.convert(1*pyunits.m**3/pyunits.s, to_units=(pyunits.gallons / pyunits.minute)))
+    # pump_power_kw = (0.746 * flow_in_gpm * lift_height / (3960 * pump_eff * motor_eff)) * pyunits.kilowatts
+
+    # electricity = (N+1)*pump_power_kw
+
+    # electricity_rate = 0.06 # $/kwh
+    total_electricity_cost = electricity_rate * electricity *  days_operation * 24
 
     road_access_cost_variable_cost =  17780/capital_recovery_factor*plant_utilization
     
@@ -175,4 +188,55 @@ def pipe_costing(capacity, distance, wacc = 0.05, plant_lifetime_yrs = 30):
     # Total O&M costs
     total_onm_costs = pipe_maintenance_cost + pump_maintenance_cost + total_electricity_cost
 
+    # $/m3
     return (total_fixed_capital_cost() + total_variable_capital_cost() + total_onm_costs())/(storage_capacity()*365)
+
+
+def elevation(lat,lon):
+    url = r'https://epqs.nationalmap.gov/v1/json?'
+
+    #location
+    params = {
+            'output': 'json',
+            'x':lon ,
+            'y': lat,
+            'units': 'Meters'
+    }
+    result = requests.get((url + urllib.parse.urlencode(params)))
+    elevation_start = float(result.json()['value'])
+
+    return elevation_start
+
+
+def elevation_gain(lat1,lon1,lat2,lon2):
+    url = r'https://epqs.nationalmap.gov/v1/json?'
+
+    # Start location
+    params = {
+            'output': 'json',
+            'x':lon1 ,
+            'y': lat1,
+            'units': 'Meters'
+    }
+    result = requests.get((url + urllib.parse.urlencode(params)))
+    elevation_start = float(result.json()['value'])
+    
+
+    # End location
+    params = {
+            'output': 'json',
+            'x':lon2 ,
+            'y': lat2,
+            'units': 'Meters'
+    }
+
+    result = requests.get((url + urllib.parse.urlencode(params)))
+    elevation_end = float(result.json()['value'])
+
+    if (elevation_end-elevation_start)<=0:
+        elev_gain = 0
+    else:
+        elev_gain = elevation_end-elevation_start 
+
+    return elev_gain
+
