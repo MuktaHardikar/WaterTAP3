@@ -21,7 +21,7 @@ last_year_for_cost_indicies = 2050
 class SystemSpecs():
 
     def __init__(self, train=None):
-        basis_data = pd.read_csv('data/case_study_TEA_basis.csv', index_col='case_study')
+        basis_data = pd.read_csv('data/case_study_TEA_basis_2050.csv', index_col='case_study')
         elec_cost = pd.read_csv('data/industrial_electricity_costs_2020.csv', index_col='location')
         elec_cost.index = elec_cost.index.str.lower()
         case_study = train['case_study']

@@ -74,6 +74,7 @@ def watertap_setup(dynamic=False, case_study=None, reference='nawi', scenario=No
         source_scenario = scenario
 
     df = pd.read_csv('data/treatment_train_setup.csv') # Read in treatment train input sheet.
+    # df = pd.read_csv('data/treatment_train_2050.csv') # Read in treatment train input sheet.
     # df = pd.read_csv('data/treatment_train_big_spring_dwi_a_sensitivity.csv') # Read in treatment train input sheet.
 
     water_type_list = []
