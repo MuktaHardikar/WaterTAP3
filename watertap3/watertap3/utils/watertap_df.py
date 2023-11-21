@@ -74,11 +74,12 @@ def watertap_setup(dynamic=False, case_study=None, reference='nawi', scenario=No
     if source_scenario is None:
         source_scenario = scenario
 
-    df = treatment_df
-    # df = pd.read_csv(treatment_file_path) # Read in treatment train input sheet.
-    # print(treatment_file_path)
-    # df = pd.read_csv('data/treatment_train_big_spring_zld_a_sensitivity.csv') # Read in treatment train input sheet.
-
+    try:
+        if not treatment_df.empty:
+            df = treatment_df           
+    except AttributeError:      
+        df = pd.read_csv('data/treatment_train_setup.csv') # Read in treatment train input sheet. 
+        
     water_type_list = []
     if new_df_units is not None:
         m.fs.df_units = new_df_units.copy()
@@ -402,7 +403,7 @@ def run_watertap3(m, desired_recovery=1, ro_bounds='seawater', solver='ipopt',
         #     m, ix_stash = get_ix_stash(m)
             m = fix_ix_stash(m, ix_stash)
 
-    run_model(m, solver=solver, objective=False, print_it=True, tolerance=tolerance)
+    run_model(m, solver=solver, objective=False, print_it=False, tolerance=tolerance)
 
     if m.fs.results.solver.termination_condition != 'optimal':
         print(f'\nFINAL MODEL RUN ABORTED:'

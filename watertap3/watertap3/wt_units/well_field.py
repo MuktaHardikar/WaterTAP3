@@ -15,12 +15,15 @@ class UnitProcess(WT3UnitProcess):
         self.pipe_cost_factor_dict = {'emwd': 82600}
         time = self.flowsheet().config.time
         t = time.first()
-        self.flow_in = Var(time, initialize = 0.1, domain=NonNegativeReals,units=pyunits.m**3/pyunits.hr)
+        # self.flow_in = Var(initialize = 0.1, units=pyunits.m**3/pyunits.hr)
         if 'flow_in' in unit_params.keys():
+            self.flow_in = Var(initialize = 0.1, units=pyunits.m**3/pyunits.hr)
             # print('flow_in in unit params')
-            self.flow_in[t].fix(unit_params['flow_in'])
+            self.flow_in.fix(unit_params['flow_in'])
         else:
-            self.flow_in[t] = pyunits.convert(self.flow_vol_in[t], to_units=pyunits.m**3 / pyunits.hr)()
+            self.flow_in = pyunits.convert(self.flow_vol_in[t], to_units=pyunits.m**3 / pyunits.hr)
+            # self.flow_in[t] = self.flow_vol_in[t]
+            # pass
         self.base_fixed_cap_cost = 4731.6
         self.cap_scaling_exp = 0.9196
         self.chem_dict = {}
@@ -33,22 +36,30 @@ class UnitProcess(WT3UnitProcess):
             except:
                 self.pipe_cost_basis = 35000
             self.pipe_fixed_cap_cost = (self.pipe_cost_basis * self.pipe_distance * self.pipe_diameter)
-            well_cap = (self.base_fixed_cap_cost * self.flow_in[t] ** self.cap_scaling_exp + self.pipe_fixed_cap_cost) * 1E-6
+            well_cap = (self.base_fixed_cap_cost * self.flow_in ** self.cap_scaling_exp + self.pipe_fixed_cap_cost) * 1E-6
             return well_cap
         except:
-            well_cap = self.base_fixed_cap_cost * self.flow_in[t] ** self.cap_scaling_exp * 1E-6
+            well_cap = self.base_fixed_cap_cost * self.flow_in ** self.cap_scaling_exp * 1E-6
             return well_cap
 
     def elect(self, unit_params):
         time = self.flowsheet().config.time
         t = time.first()
+        if 'flow_in' in unit_params.keys():
+            # self.flow_in = Var(initialize = 0.1, units=pyunits.m**3/pyunits.hr)
+            # print('flow_in in unit params')
+            self.flow_in.fix(unit_params['flow_in'])
+        else:
+            self.flow_in = pyunits.convert(self.flow_vol_in[t], to_units=pyunits.m**3 / pyunits.hr)
+
         try:
             self.pump = unit_params['pump']
             if self.pump not in ['yes', 'no']:
                 self.pump = 'yes'
         except (KeyError, TypeError) as e:
             self.pump = 'yes'
-        self.lift_height = Var(time, initialize=100, domain=NonNegativeReals, bounds=(0, 1E5), units=pyunits.ft, doc='Lift height for well pump [ft]')
+        self.lift_height = Var(time, initialize=10, domain=NonNegativeReals, bounds=(0, 1E5), units=pyunits.ft, 
+                               doc='Lift height for well pump [ft]')
         self.pump_eff = 0.9 * pyunits.dimensionless
         self.motor_eff = 0.9 * pyunits.dimensionless
         if self.pump == 'yes':
@@ -56,11 +67,13 @@ class UnitProcess(WT3UnitProcess):
                 if 'lift_height' in unit_params.keys():
                     self.lift_height.fix(unit_params['lift_height'])
                 else:
-                    self.lift_height.fix(100)
+                    # self.lift_height.fix(100)
+                    pass
             except (KeyError, TypeError) as e:
-                self.lift_height.fix(100)
-            flow_in_gpm = pyunits.convert(self.flow_in[t], to_units=pyunits.gallons / pyunits.minute)
-            electricity = (0.746 * flow_in_gpm * self.lift_height[t] / (3960 * self.pump_eff * self.motor_eff)) / self.flow_in[t]
+                # self.lift_height.fix(100)
+                pass
+            flow_in_gpm = pyunits.convert(self.flow_in, to_units=pyunits.gallons / pyunits.minute)
+            electricity = (0.746 * flow_in_gpm * self.lift_height[t] / (3960 * self.pump_eff * self.motor_eff)) / self.flow_in
             return electricity
         else:
             return 0
