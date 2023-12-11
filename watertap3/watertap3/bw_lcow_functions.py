@@ -571,7 +571,7 @@ def treatment_only_LCOW(capacity, tds, well_depth, elec_price):
     return (lcow-well_field_lcow,recovery, m.fs.deep_well_injection.flow_vol_in[0].value*3600*24)
 
 
-# Calculate the LCOW of adding each cluster of wells on state at a time
+# Calculate the LCOW of adding each cluster of wells one state at a time
 def condense_cluster_table(condensed_subcluster_bw_df):
 
     # Inline functions to calculate weighted average tds and lcows
@@ -595,6 +595,7 @@ def condense_cluster_table(condensed_subcluster_bw_df):
                 subcluster_long = ('subcluster_long',pd.Series.to_list),
                 subcluster_elev = ('subcluster_elev',pd.Series.to_list),
                 subcluster_centroid_dist = ('subcluster_centroid_dist',pd.Series.to_list),
+                unique_site_ID = ('unique_site_ID',','.join),
 
                 cluster_total_well_yield = ('total_well_yield','sum'),
                 cluster_avg_TDS_kgm3 = ('avg_TDS_kgm3', calc_avg_tds),
@@ -681,38 +682,55 @@ def plot_well_centroid(bw_cluster_kmeans):
         centers_long.append(row['centroid_long'])
         centers_lat.append(row['centroid_lat'])
 
-    fig, ax = plt.subplots( figsize = (10,6))
-    ax.axes.set_facecolor(color='white')
+    fig, (ax,ax0) = plt.subplots(1,2, figsize = (14,6))
+
+    # ax.axes.set_facecolor(color='white')
+    # ax0.axes.set_facecolor(color='white')
 
     cm = plt.cm.get_cmap('tab20b')
 
     state_border.plot(ax=ax,facecolor ='none',edgecolor ='black')
     state_geo.plot(ax=ax,facecolor ='none',edgecolor ='gray',alpha = 0.5)
 
+    state_border.plot(ax=ax0,facecolor ='none',edgecolor ='black')
+    state_geo.plot(ax=ax0,facecolor ='none',edgecolor ='gray',alpha = 0.5)
+
+    sc = ax0.scatter(x = state_df['Longitude'], y = state_df['Latitude'], s=50, 
+                c=state_df['cluster_id'].values, cmap=cm, edgecolor ='black',alpha = 0.8)
+
     for cluster in state_df['cluster_id'].unique():
         df_0 = state_df[(state_df['cluster_id']==cluster)]
 
-        sc = ax.scatter(x = df_0['Longitude'], y = df_0['Latitude'], s=100, 
-                c=df_0['subcluster_id'].values,cmap=cm)
-    
+        ax.scatter(x = df_0['Longitude'], y = df_0['Latitude'], s=80, 
+                c=df_0['subcluster_id'].values,cmap=cm)    
+
         for i, txt in enumerate(df_0['subcluster_id'].unique()):
             ax.annotate(txt, 
                         (df_0[df_0['subcluster_id']==i]['subcluster_long'].values[0]+0.2, 
                         df_0[df_0['subcluster_id']==i]['subcluster_lat'].values[0]),fontsize =8)
-            # print(i,txt)
-        ax.scatter(df_0['subcluster_long'].values, df_0['subcluster_lat'].values, 
-                c=df_0['subcluster_id'].values,marker='*',s=120,cmap='tab20c',linewidths=2,edgecolor ='black')
         
+        # Plot subcluster centroid
+        ax.scatter(df_0['subcluster_long'].values, df_0['subcluster_lat'].values, 
+                c=df_0['subcluster_id'].values,marker='*',s=120,cmap='tab20b',linewidths=0.5,edgecolor ='black')
+        
+        # Plot the centroid in each cluster
         ax.scatter(df_0['centroid_long'], df_0['centroid_lat'], c='black', s=120, marker = '^',edgecolor ='black')
+        ax0.scatter(df_0['centroid_long'], df_0['centroid_lat'], c='black', s=120, marker = '^',edgecolor ='black')
 
     # cbaxes = fig.add_axes([0.1, 0.1, 0.03, 0.8]) 
-    cbar = plt.colorbar(sc,ax=ax,ticks = plt.MaxNLocator(11))
-    cbar.ax.set_title('Cluster ID',fontsize = 18)
+    if len(state_df['cluster_id'].unique())%2 == 0:
+        ticks_var = len(state_df['cluster_id'].unique()) 
+    else:
+        ticks_var = len(state_df['cluster_id'].unique()) + 1
+
+    cbar = plt.colorbar(sc,ax=ax0,ticks = plt.MaxNLocator(ticks_var))
+    cbar.ax.set_title('Cluster ID',fontsize = 14)
     cbar.ax.tick_params(labelsize=14)
 
-    plt.tick_params(left = False, right = False , labelleft = False ,
-                    labelbottom = False, bottom = False)
-    plt.show()
+    # plt.tick_params(left = False, right = False , labelleft = False ,
+    #                 labelbottom = False, bottom = False)
+    
+    return fig
 
 # Function to plot LCOW supply curve
 def plot_supply_curve(bw_cluster_kmeans,condensed_cluster_bw_df,state_alpha):
@@ -729,16 +747,16 @@ def plot_supply_curve(bw_cluster_kmeans,condensed_cluster_bw_df,state_alpha):
 
     # Calculating LCOW as a function of well yield without clustering
     flow = bw_df_temp_sorted_1['well_yield']*bw_df_temp_sorted_1['recovery']/100
-    cum_flow = flow.cumsum()
+    cum_flow_1 = flow.cumsum()
 
     # Treatment + brine disposal cost
     lcow_t = bw_df_temp_sorted_1['lcow'] + bw_df_temp_sorted_1['pipe_lcow']
     cost = lcow_t*flow
-    cum_cost = cost.cumsum()
+    cum_cost_1 = cost.cumsum()
 
-    avg_lcow = np.divide(cum_cost, cum_flow, out=np.zeros_like(cum_cost), where=cum_flow!=0) 
+    avg_lcow_1 = np.divide(cum_cost_1, cum_flow_1, out=np.zeros_like(cum_cost_1), where=cum_flow_1!=0) 
     
-    ax.scatter(cum_flow,avg_lcow,c = cluster_id_list,cmap=colors)
+    ax.scatter(cum_flow_1,avg_lcow_1,c = cluster_id_list,cmap=colors)
     ax.set_title('Without Clustering')
 
     # With clustering
@@ -754,14 +772,21 @@ def plot_supply_curve(bw_cluster_kmeans,condensed_cluster_bw_df,state_alpha):
 
     ax1.set_title('With Clustering')
     sc = ax1.scatter(cum_flow,avg_lcow,c=condensed_cluster_bw_df_sort['cluster_id'].values,cmap=colors)
-    cbar = plt.colorbar(sc,ax=ax1,ticks = plt.MaxNLocator(len()))
+
+    if len(condensed_cluster_bw_df_sort['cluster_id'].unique())%2 == 0:
+        ticks_var = len(condensed_cluster_bw_df_sort['cluster_id'].unique())
+    else:
+        ticks_var = len(condensed_cluster_bw_df_sort['cluster_id'].unique()) + 1 
+
+    cbar = plt.colorbar(sc,ax=ax1,ticks = plt.MaxNLocator(ticks_var))
 
     for a in (ax,ax1):
-        # a.set_xlim([0,2])
-        a.set_ylim([0,1.6])
+        a.set_xlim([0,max(cum_flow_1)+0.5])
+        a.set_ylim([0,max(avg_lcow_1)+0.2])
         a.set_ylabel('Average LCOW ($/m3 water treated)')
         a.set_xlabel('Cumulative flow (m3/s)')
 
+    return fig
 
 if __name__=='__main__':
     state_alpha = 'WI'
