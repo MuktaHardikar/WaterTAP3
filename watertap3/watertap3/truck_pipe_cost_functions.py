@@ -84,6 +84,8 @@ def pipe_costing(capacity, distance, elev_gain = 1e-5, wacc = 0.05, plant_lifeti
 
     if distance == 0:
         return 0
+    if capacity == 0:
+        return 0
     # Inputs
     
     storage_capacity = capacity* pyunits.m**3/pyunits.day
