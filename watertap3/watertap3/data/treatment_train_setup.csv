@@ -318,6 +318,39 @@ kbhdp,nawi,dwi,treated_storage,treatment,treated_storage,municipal_drinking,outl
 kbhdp,nawi,dwi,deep_well_injection,waste,deep_well_injection,,,"{'pipe_distance': 22, 'lift_height': 400}"
 kbhdp,nawi,dwi,municipal_drinking,use,municipal_drinking,,,
 ,,,,,,,,
+Brackish Sensitivity,,,,,,,,
+,,,,,,,,
+big_spring,nawi,dwi_check,passthrough,intake,source,deep_well_injection,outlet,{'water_type': ['big_spring_feed']}
+big_spring,nawi,dwi_check,deep_well_injection,treatment,deep_well_injection,"use,waste","outlet,waste","{'pipe_distance': 0, 'lift_height': 400}"
+big_spring,nawi,dwi_check,passthrough,use,use,,,
+big_spring,nawi,dwi_check,passthrough,waste,waste,,,
+,,,,,,,,
+big_spring,nawi,sd_check,passthrough,intake,source,surface_discharge,outlet,{'water_type': ['big_spring_feed']}
+big_spring,nawi,sd_check,surface_discharge,treatment,surface_discharge,"use,waste","outlet,waste",
+big_spring,nawi,sd_check,passthrough,use,use,,,
+big_spring,nawi,sd_check,passthrough,waste,waste,,,
+,,,,,,,,
+big_spring,nawi,bc_check,passthrough,intake,source,brine_concentrator,outlet,{'water_type': ['big_spring_feed']}
+big_spring,nawi,bc_check,brine_concentrator,treatment,brine_concentrator,"use,waste","outlet,waste",
+big_spring,nawi,bc_check,passthrough,use,use,,,
+big_spring,nawi,bc_check,passthrough,waste,waste,,,
+,,,,,,,,
+big_spring,nawi,c_check,passthrough,intake,source,crystallizer,outlet,{'water_type': ['big_spring_feed']}
+big_spring,nawi,c_check,crystallizer,treatment,crystallizer,"use,waste","outlet,waste",
+big_spring,nawi,c_check,passthrough,use,use,,,
+big_spring,nawi,c_check,passthrough,waste,waste,,,
+,,,,,,,,
+big_spring,nawi,ep_check,passthrough,intake,source,evaporation_pond,outlet,{'water_type': ['big_spring_feed']}
+big_spring,nawi,ep_check,evaporation_pond,treatment,evaporation_pond,"use,waste","outlet,waste",
+big_spring,nawi,ep_check,passthrough,use,use,,,
+big_spring,nawi,ep_check,passthrough,waste,waste,,,
+,,,,,,,,
+big_spring,nawi,lf_check,passthrough,intake,source,landfill_zld,outlet,{'water_type': ['big_spring_feed']}
+big_spring,nawi,lf_check,landfill_zld,treatment,landfill_zld,"use,waste","outlet,waste",
+big_spring,nawi,lf_check,passthrough,use,use,,,
+big_spring,nawi,lf_check,passthrough,waste,waste,,,
+,,,,,,,,
+,,,,,,,,
 MUNICIPAL,,,,,,,,
 ,,,,,,,,
 big_spring,nawi,baseline,well_field,intake,well_field,microfiltration,outlet,{'water_type': ['big_spring_feed']}
@@ -350,7 +383,7 @@ big_spring,nawi,dwi_b,municipal_drinking,use,municipal_drinking,,,
 big_spring,nawi,dwi_b,deep_well_injection,waste,deep_well_injection,,,"{'pipe_distance': 10, 'lift_height': 400}"
 big_spring,nawi,dwi_b,surface_discharge,waste,surface_discharge,,,
 ,,,,,,,,
-big_spring,nawi,zld_a,well_field,intake,well_field,microfiltration,outlet,{'water_type': ['big_spring_feed']}
+big_spring,nawi,zld_a,well_field,intake,well_field,microfiltration,outlet,"{'water_type': ['big_spring_feed'],'lift_height': 10}"
 big_spring,nawi,zld_a,microfiltration,treatment,microfiltration,"ro_first_stage,evaporation_pond","outlet,waste",
 big_spring,nawi,zld_a,reverse_osmosis,treatment,ro_first_stage,"uv_aop,passthrough","outlet,waste",{'erd': 'no'}
 big_spring,nawi,zld_a,basic_unit,treatment,passthrough,ozone,outlet,{'unit_process_name': 'passthrough'}
@@ -379,7 +412,7 @@ big_spring,nawi,zld_b,evaporation_pond,treatment,evaporation_pond,landfill_zld,w
 big_spring,nawi,zld_b,municipal_drinking,use,municipal_drinking,,,
 big_spring,nawi,zld_b,landfill_zld,waste,landfill_zld,,,
 ,,,,,,,,
-big_spring,nawi,zld_c,well_field,intake,well_field,microfiltration,outlet,{'water_type': ['big_spring_feed']}
+big_spring,nawi,zld_c,well_field,intake,well_field,microfiltration,outlet,"{'water_type': ['big_spring_feed'],'lift_height': 10}"
 big_spring,nawi,zld_c,microfiltration,treatment,microfiltration,ro_first_stage,outlet,{'unit_process_name': 'microfiltration'}
 big_spring,nawi,zld_c,reverse_osmosis,treatment,ro_first_stage,"uv_aop,passthrough","outlet,waste",{'erd': 'no'}
 big_spring,nawi,zld_c,basic_unit,treatment,passthrough,ozone,outlet,{'unit_process_name': 'passthrough'}

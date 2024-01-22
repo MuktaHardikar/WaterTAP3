@@ -749,8 +749,8 @@ def plot_supply_curve(bw_cluster_kmeans,condensed_cluster_bw_df,state_alpha):
     flow = bw_df_temp_sorted_1['well_yield']*bw_df_temp_sorted_1['recovery']/100
     cum_flow_1 = flow.cumsum()
 
-    # Treatment + brine disposal cost
-    lcow_t = bw_df_temp_sorted_1['lcow'] + bw_df_temp_sorted_1['pipe_lcow']
+    # Treatment + brine disposal cost included in lcow 
+    lcow_t = bw_df_temp_sorted_1['lcow'] + bw_df_temp_sorted_1['well_field_lcow']/(bw_df_temp_sorted_1['recovery']/100)
     cost = lcow_t*flow
     cum_cost_1 = cost.cumsum()
 

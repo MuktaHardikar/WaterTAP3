@@ -86,6 +86,8 @@ def pipe_costing(capacity, distance, elev_gain = 1e-5, wacc = 0.05, plant_lifeti
         return 0
     if capacity == 0:
         return 0
+    if elev_gain == 0:
+        elev_gain = 1e-5
     # Inputs
     
     storage_capacity = capacity* pyunits.m**3/pyunits.day
@@ -205,7 +207,10 @@ def elevation(lat,lon):
             'units': 'Meters'
     }
     result = requests.get((url + urllib.parse.urlencode(params)))
-    elevation_start = float(result.json()['value'])
+    try:
+        elevation_start = float(result.json()['value'])
+    except:
+        elevation_start = 0
 
     return elevation_start
 
