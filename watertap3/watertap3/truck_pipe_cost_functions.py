@@ -73,7 +73,7 @@ def truck_costing(distance, state='TX', wacc = 0.05, plant_lifetime_yrs = 30,fue
     return  (total_fixed_capital_cost + total_variable_cost * distance())
 
 
-def pipe_costing(capacity, distance, elev_gain = 1e-5, wacc = 0.05, plant_lifetime_yrs = 30,electricity_rate = 0.06):
+def pipe_costing(capacity, distance, elev_gain = 1e-5, wacc = 0.05, plant_lifetime_yrs = 30,electricity_rate = 0.06,pump_power = 20,pumping_velocity = 3):
     '''
     Reference: Marufuzzaman, M., et al. (2015). "Truck versus pipeline transportation cost analysis of wastewater sludge." 
     Transportation Research Part A: Policy and Practice 74: 14-30.
@@ -81,19 +81,22 @@ def pipe_costing(capacity, distance, elev_gain = 1e-5, wacc = 0.05, plant_lifeti
     This function return the LCOW of transport through pipes as a function of distance and volume
     '''
 
-
     if distance == 0:
         return 0
     if capacity == 0:
         return 0
     if elev_gain == 0:
         elev_gain = 1e-5
-    # Inputs
     
-    storage_capacity = capacity* pyunits.m**3/pyunits.day
-    pumping_velocity = 1.5 *pyunits.m/pyunits.s
-    pump_power = 24 *pyunits.hp
+    # Inputs
+    storage_capacity = capacity *pyunits.m**3/pyunits.day
     distance = distance *pyunits.km
+
+    # Assumed velocity from ref (Pootakham and Kumar 2010) was 1.5, updated to 3 m/s
+    pumping_velocity = pumping_velocity *pyunits.m/pyunits.s
+    # Assumed pump power from ref (Pootakham and Kumar 2010)
+    pump_power = pump_power *pyunits.hp
+    
     days_operation = 350
     plant_utilization = days_operation/365
 
@@ -102,42 +105,61 @@ def pipe_costing(capacity, distance, elev_gain = 1e-5, wacc = 0.05, plant_lifeti
     # Fixed capital cost - not a function of distance
     
     # Inlet pumping station - based on correlation in "Truck versus pipeline transportation cost analysis of wastewater sludge"
-    storage_tank = 1000000*((storage_capacity/9400)*0.65)
+    # storage_tank = 1000000*((storage_capacity/9400)*0.65)
+    
+    tank_cost_basis = 1556056 #1e6  # $/tank
+    tank_capacity_basis = 9400 #m3
+    storage_tank = tank_cost_basis*((storage_capacity/tank_capacity_basis)**0.65)  # $
 
     # Valve
     pipe_csa = pyunits.convert(storage_capacity,to_units = pyunits.m**3/pyunits.s)/pumping_velocity
     pipe_diameter = pyunits.convert(2 * (pipe_csa/np.pi)**0.5 , to_units = pyunits.inch)
-    fitting_valve_cost = 13220*(pipe_diameter**1.05)
+
+    if pipe_diameter() > 63:
+        # print('Diameter reduced')
+        pipe_diameter = 63 * pyunits.inch
+        pipe_csa = pyunits.convert(np.pi/4*pipe_diameter**2, to_units = pyunits.m**2)
+        pumping_velocity = pyunits.convert(storage_capacity,to_units = pyunits.m**3/pyunits.s)/pipe_csa
+        # print(pumping_velocity())
+
+    # print('pipe diameter (inch):',pipe_diameter())
+    fitting_valve_cost_basis = 17496 #13220
+    fitting_valve_cost = fitting_valve_cost_basis*(pyunits.convert(pipe_diameter, to_units = pyunits.ft))**1.05
 
     # Inlet pump
-    inlet_pump_cost = 1322*(pump_power**0.8056)
+    inlet_pump_cost_basis = 1750 #1322
+    inlet_pump_cost = inlet_pump_cost_basis*(pump_power**0.8)
 
-    # Miscellaneous / construction costs --> Taken from reference
-    road_access_cost = 320/capital_recovery_factor*plant_utilization
-    building_foundation_cost = 1110/capital_recovery_factor*plant_utilization
+    # Outlet pump - Assumed to have 5 HP pump power
+    outlet_pump_cost = inlet_pump_cost_basis*(5**0.8)
+
+    # Miscellaneous / construction costs --> Taken from reference "Truck versus pipeline transportation cost analysis of wastewater sludge"
+    
+    road_access_cost = 424/capital_recovery_factor*plant_utilization  # 320
+    building_foundation_cost = 1469/capital_recovery_factor*plant_utilization  #1110
 
     # Total inlet and outlet station cost
     total_inlet_station_fixed_capital_cost = storage_tank + fitting_valve_cost + inlet_pump_cost + building_foundation_cost + road_access_cost 
-    total_outlet_station_fixed_capital_cost = storage_tank + fitting_valve_cost + building_foundation_cost
+    total_outlet_station_fixed_capital_cost = storage_tank + fitting_valve_cost + outlet_pump_cost + building_foundation_cost
 
     # Total fixed capital cost - $/m3
     total_fixed_capital_cost = ( total_inlet_station_fixed_capital_cost + total_outlet_station_fixed_capital_cost )
 
-    total_fixed_capital_cost = total_fixed_capital_cost *capital_recovery_factor/plant_utilization
+    total_fixed_capital_cost = total_fixed_capital_cost * capital_recovery_factor/plant_utilization #$/year
 
     # Variable -function of distance # $/m3
 
     # Booster station costs
     booster_pump_cost = inlet_pump_cost
-    booster_pump_installation_cost = 0.1 * total_fixed_capital_cost/capital_recovery_factor*plant_utilization
+    booster_pump_installation_cost = 0.1 * inlet_pump_cost
 
     # Number of booster pumps 
-    friction_factor = 0.005
+    friction_factor = 0.005 
     density = 1000*pyunits.kg/pyunits.m**3
     g = 9.8*pyunits.m/pyunits.s**2
     
     deltaP_grad =  friction_factor*density*(pumping_velocity**2)/(2*pyunits.convert(pipe_diameter,to_units = pyunits.m))*1e-5 #bar/m
-    deltaP_elev_gain = density*g*elev_gain*pyunits.m/pyunits.convert(distance,pyunits.m) * 1e-5
+    deltaP_elev_gain = density*g*elev_gain*pyunits.m/pyunits.convert(distance,pyunits.m) * 1e-5 #bar/m
 
     Pmax = 15 # maximum allowable pressure in the pipe
     Pmin = 2  # minimum pressure after which there's no flow
@@ -146,53 +168,47 @@ def pipe_costing(capacity, distance, elev_gain = 1e-5, wacc = 0.05, plant_lifeti
     N = pyunits.convert(distance,to_units = pyunits.m)/lx
     
     N = math.ceil(N())-1
-
-    booster_power_line_cost = 1.32*((8400*N)+8400)
+    # print('N:',N,'lx:',lx)
+    booster_power_line_cost = 1.75*((8400*N)+8400)  #1.32
 
     total_booster_station_cost = (N*(building_foundation_cost + booster_pump_cost() + booster_pump_installation_cost() + road_access_cost) + booster_power_line_cost)
 
     # Annual maintenance variable costs --> putting numbers from the paper
     # Pipe costs
-    pipe_material_cost = 1120 /pyunits.ton   # PVC pipe cost
-    pipe_thickness = 0.5 * pyunits.inches
-    pipe_cost = 28.2*(pyunits.convert(pipe_diameter,to_units = pyunits.inches)-pipe_thickness)*pipe_thickness*pyunits.convert(distance,to_units=pyunits.mile)*pipe_material_cost
+    pipe_material_cost = 1200 /pyunits.ton   # updated to HDPE, PVC pipe cost
+    pipe_thickness = 0.05*pipe_diameter() * pyunits.inches
+    pipe_cost_basis = 37.3 #28.2
+    pipe_cost = pipe_cost_basis*(pyunits.convert(pipe_diameter,to_units = pyunits.inches)-pipe_thickness)*pipe_thickness*pyunits.convert(distance,to_units=pyunits.mile)*pipe_material_cost
 
-    construction_cost = 31037.1 * pyunits.convert(distance,to_units = pyunits.mile) * pyunits.convert(pipe_diameter,to_units = pyunits.inches)
+    construction_cost_basis = 41077 #31037.1
+    construction_cost = construction_cost_basis * pyunits.convert(distance,to_units = pyunits.mile) * pyunits.convert(pipe_diameter,to_units = pyunits.inches)
     pipe_maintenance_cost = 0.5/100*pipe_cost
-
-    pump_maintenance_cost = 0.03*(total_fixed_capital_cost)/capital_recovery_factor*plant_utilization
-
+    # print(pipe_maintenance_cost())
+    pump_maintenance_cost = 0.03*(total_fixed_capital_cost) #/capital_recovery_factor*plant_utilization
+    # print(pump_maintenance_cost())
     man_hours = 8400  # hours per year for 100 miles
-    labor_cost = 29.2*man_hours/capital_recovery_factor*plant_utilization/100/1.6*distance()
+    
+    # Labor cost is towards operating the pumps so removed the distance component
+    labor_cost_basis = 38  #29.2
+    labor_cost = labor_cost_basis*man_hours/capital_recovery_factor*plant_utilization/100/1.6*distance()
 
-    # Following method in WT2 water_pumping_station
+    # Following method in WT3 water_pumping_station
     electricity = pyunits.convert((N+1)*pump_power,to_units = pyunits.kW) 
 
-    # Including elevation gain in calculating electricity
-    # pump_eff = 0.9
-    # motor_eff = 0.9
-    # lift_height = elev_gain
-    # flow = pumping_velocity* pipe_csa
-    # flow_in_gpm  = flow*(pyunits.convert(1*pyunits.m**3/pyunits.s, to_units=(pyunits.gallons / pyunits.minute)))
-    # pump_power_kw = (0.746 * flow_in_gpm * lift_height / (3960 * pump_eff * motor_eff)) * pyunits.kilowatts
-
-    # electricity = (N+1)*pump_power_kw
-
-    # electricity_rate = 0.06 # $/kwh
     total_electricity_cost = electricity_rate * electricity *  days_operation * 24
 
-    road_access_cost_variable_cost =  17780/capital_recovery_factor*plant_utilization
+    # Constant 17780 updated
+    road_access_cost_variable_cost =  23532/capital_recovery_factor*plant_utilization
     
     # Total miscellaneous costs
     total_misc_variable_capital_cost = ( pipe_cost + construction_cost +  labor_cost  + road_access_cost_variable_cost )
 
-
-    total_variable_capital_cost = (total_booster_station_cost + total_misc_variable_capital_cost)*capital_recovery_factor/plant_utilization #$
+    total_variable_capital_cost = (total_booster_station_cost + total_misc_variable_capital_cost)*capital_recovery_factor/plant_utilization #$/year
 
     # Total O&M costs
-    total_onm_costs = pipe_maintenance_cost + pump_maintenance_cost + total_electricity_cost
+    total_onm_costs = (pipe_maintenance_cost + pump_maintenance_cost + total_electricity_cost)/plant_utilization
 
-    # $/m3
+    # LCOW $/m3
     return (total_fixed_capital_cost() + total_variable_capital_cost() + total_onm_costs())/(storage_capacity()*365)
 
 
@@ -211,6 +227,7 @@ def elevation(lat,lon):
         elevation_start = float(result.json()['value'])
     except:
         elevation_start = 0
+        print('Failure')
 
     return elevation_start
 
