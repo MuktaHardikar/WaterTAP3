@@ -25,13 +25,14 @@ from wells_dijkstra_algorithm import *
 # Read relevant files
 
 # Brackish water USGS files
-bw_df = pd.read_csv('/Users/mhardika/Documents/AMO/GeoToolAll_Methods/Water Source Data/Brackish/brackish_sites_with_metrics_baseline_dwi_updated_costs_transport_updated_basis_1.csv')
+# bw_df = pd.read_csv('/Users/mhardika/Documents/AMO/GeoToolAll_Methods/Water Source Data/Brackish/brackish_sites_with_metrics_baseline_dwi_updated_costs_transport_updated_basis_1.csv')
+bw_df = pd.read_csv('/Users/mhardika/Documents/AMO/GeoToolAll_Methods/Water Source Data/Brackish/brackish_sites_baseline_dwi_5Feb23.csv')
 
 # Function to form cluster
 
 def form_cluster(df,n_clusters = 3):
 
-    kmeans = KMeans(n_clusters = n_clusters, init ='k-means++',random_state=42)
+    kmeans = KMeans(n_clusters = n_clusters, init ='k-means++', random_state=42)
     kmeans.fit(df[df.columns[2:4]])  # Compute k-means clustering.
     
     # Assign cluster IDs to the column
@@ -51,6 +52,7 @@ def create_cluster_id_df(state_alpha):
 
     bw_cluster_kmeans = pd.DataFrame()
 
+    # Copy the rows for a state and copy select columns for those states
     bw_state_df = bw_df[bw_df['state_alpha'] == state_alpha].copy()
     bw_state_df_loc = bw_state_df[['state_alpha','unique_site_ID','Latitude','Longitude','county_nm',
                                        'well_depth_ft','well_yield','TDS_kgm3','elec_price','well_field_lcow']]
@@ -61,56 +63,56 @@ def create_cluster_id_df(state_alpha):
         bw_state_df_loc['well_yield'] = bw_state_df['well_yield']
         bw_cluster_kmeans = pd.concat([bw_cluster_kmeans,bw_state_df_loc])
     
+    else:
+        # First pass at clustering for a state and return dataframe with column 'centers'
+        bw_state_df_loc = form_cluster(bw_state_df_loc)
 
-    # First pass at clustering for a state
-    bw_state_df_loc = form_cluster(bw_state_df_loc)
+        # Assign well yield
+        bw_state_df_loc['well_yield'] = bw_state_df['well_yield']
+        bw_state_df_loc = bw_state_df_loc.sort_values(['cluster_id'])
 
-    # Assign well yield
-    bw_state_df_loc['well_yield'] = bw_state_df['well_yield']
-    bw_state_df_loc = bw_state_df_loc.sort_values(['cluster_id'])
+        # To keep track of clusters and new created clusters if the maximum capacity of a treatment plant is exceeded
+        prev_max_cluster_label = 0
 
-    # To keep track of clusters and new created clusters if the maximum capacity of a treatment plant is exceeded
-    prev_max_cluster_label = 0
+        # Dataframe for each state with their respective cluster id
+        cluster_state_df = pd.DataFrame()
 
-    # Dataframe for each state with their respective cluster id
-    cluster_state_df = pd.DataFrame()
+        for cluster_id in bw_state_df_loc['cluster_id'].unique():
+            cluster_sub_df = pd.DataFrame()
+            temp_df = pd.DataFrame()
 
-    for cluster_id in bw_state_df_loc['cluster_id'].unique():
-        cluster_sub_df = pd.DataFrame()
-        temp_df = pd.DataFrame()
+            # Check if maximum capacity of treatment plant is exceeded
+            well_yield_total = sum(bw_state_df_loc[bw_state_df_loc['cluster_id']==cluster_id]['well_yield'])
 
-        # Check if maximum capacity of treatment plant is exceeded
-        well_yield_total = sum(bw_state_df_loc[bw_state_df_loc['cluster_id']==cluster_id]['well_yield'])
+            max_capacity = math.ceil(27.5*0.043813)  #---> Carlsbad is 50 MGD. Kay Bailey is 27.5 MGD
+            if well_yield_total > max_capacity: 
+                # If exceed increase number of clusters in the original cluster and redo
+                cluster_sub_df = bw_state_df_loc[bw_state_df_loc['cluster_id']==cluster_id].copy()
 
-        max_capacity = math.ceil(27.5*0.043813)  #---> Carlsbad is 50 MGD. Kay Bailey is 27.5 MGD
-        if well_yield_total > max_capacity: 
-            # If exceed increase number of clusters in the original cluster and redo
-            cluster_sub_df = bw_state_df_loc[bw_state_df_loc['cluster_id']==cluster_id].copy()
+                temp_df = form_cluster(cluster_sub_df, n_clusters = math.ceil(well_yield_total/max_capacity))
+                temp_df = temp_df.sort_values(['cluster_id'])
 
-            temp_df = form_cluster(cluster_sub_df, n_clusters = math.ceil(well_yield_total/max_capacity))
-            temp_df = temp_df.sort_values(['cluster_id'])
-
-            if cluster_id == 0:
-                temp_df['cluster_id'].update(prev_max_cluster_label + temp_df['cluster_id'])
+                if cluster_id == 0:
+                    temp_df['cluster_id'].update(prev_max_cluster_label + temp_df['cluster_id'])
+                else:
+                    temp_df['cluster_id'].update(prev_max_cluster_label + temp_df['cluster_id'] + 1)
+                prev_max_cluster_label = max(temp_df['cluster_id'])
+                
+                cluster_state_df = pd.concat([cluster_state_df,temp_df],ignore_index=True)
             else:
-                temp_df['cluster_id'].update(prev_max_cluster_label + temp_df['cluster_id'] + 1)
-            prev_max_cluster_label = max(temp_df['cluster_id'])
-            
-            cluster_state_df = pd.concat([cluster_state_df,temp_df],ignore_index=True)
-        else:
-            # If maximum capacity is not exceeded add to state data frame
-            temp_bw_state_df_loc = bw_state_df_loc[bw_state_df_loc['cluster_id']==cluster_id].copy()
-            if cluster_id == 0:
-               temp_bw_state_df_loc['cluster_id'] = prev_max_cluster_label 
-            else:
-               temp_bw_state_df_loc['cluster_id'] = prev_max_cluster_label + 1
+                # If maximum capacity is not exceeded add to state data frame
+                temp_bw_state_df_loc = bw_state_df_loc[bw_state_df_loc['cluster_id']==cluster_id].copy()
+                if cluster_id == 0:
+                    temp_bw_state_df_loc['cluster_id'] = prev_max_cluster_label 
+                else:
+                    temp_bw_state_df_loc['cluster_id'] = prev_max_cluster_label + 1
 
-            cluster_state_df = pd.concat([cluster_state_df,temp_bw_state_df_loc],ignore_index=True)
-            prev_max_cluster_label = max(cluster_state_df['cluster_id'])
+                cluster_state_df = pd.concat([cluster_state_df,temp_bw_state_df_loc],ignore_index=True)
+                prev_max_cluster_label = max(cluster_state_df['cluster_id'])
 
-        print(cluster_state_df['cluster_id'].unique())
-    
-    bw_cluster_kmeans = pd.concat([bw_cluster_kmeans,cluster_state_df])
+            print(cluster_state_df['cluster_id'].unique())
+
+        bw_cluster_kmeans = pd.concat([bw_cluster_kmeans,cluster_state_df])
 
     return bw_cluster_kmeans
 
@@ -137,6 +139,29 @@ def select_closest_well(df):
     
     return well
 
+# Function to find well closest to the center of the cluster
+def select_closest_well_subcluster(df):
+    max_dist = 1000
+
+    for idx, row in df.iterrows():
+        bw_long = row['Longitude']
+        bw_lat = row['Latitude']
+
+        bw_loc = (bw_lat,bw_long)
+
+        cent_long = row['subcluster_centers'][1]
+        cent_lat = row['subcluster_centers'][0]
+        
+        cent_loc = (cent_lat,cent_long)
+
+        dist_km = hs.haversine(cent_loc,bw_loc)
+
+        if dist_km < max_dist:
+            max_dist = dist_km
+            well = row['unique_site_ID']
+    
+    return well
+
 
 # Function to form sub-clusters and find the centroid of the subcluster
 def find_subcluster_centroid(coords,cluster_range = 5):
@@ -144,7 +169,7 @@ def find_subcluster_centroid(coords,cluster_range = 5):
     range_km = cluster_range*1.609343502101154
     epsilon = range_km/ kms_per_radian
 
-    # Form sub-
+    # Form subcluster
     db = DBSCAN(eps=epsilon, min_samples=1, algorithm='ball_tree', metric='haversine').fit(np.radians(coords))
     cluster_labels = db.labels_
 
@@ -175,7 +200,7 @@ def create_subcluster(state_df):
         loc = gp.GeoDataFrame(geometry = loc, crs='EPSG:4326')
         loc.geometry = loc.geometry.to_crs('EPSG:4326')
 
-        # Assign cluster label
+        # Assign subcluster label
         temp = pd.DataFrame(columns = ['subcluster_id','centroid'])
         temp['subcluster_id'] = cluster_labels
         temp['centroid'] = loc.geometry[cluster_labels].values
@@ -187,7 +212,7 @@ def create_subcluster(state_df):
             subcluster_df['centroid'].values.y.tolist()]
 
 
-# Table to create brackish well table that includes cluster IDs and subcluster IDs. This done for one state at a time
+# Function to create brackish well table that includes cluster IDs and subcluster IDs. This done for one state at a time
 def create_bw_cluster_subcluster_df(state_alpha,bw_cluster_kmeans):
     well_elevation_list = []
     centroid_long_list = []
@@ -196,10 +221,16 @@ def create_bw_cluster_subcluster_df(state_alpha,bw_cluster_kmeans):
     subcluster_id_list = []
     subcluster_centroid_long_list = []
     subcluster_centroid_lat_list = []
+    subcluster_centers_list = []
     subcluster_elevation_list = []
     subcluster_dist_list = []
 
     temp_state = bw_cluster_kmeans[bw_cluster_kmeans.state_alpha == state_alpha].copy()
+
+    # Read state elevation file
+    PATH = r'\Users\mhardika\Documents\AMO\GeoToolAll_Methods\Water Source Data\Brackish\elevation_data\\'
+    elev_db = pd.read_csv(PATH + '\\' + state_alpha.lower()+'.csv', index_col = 0)
+    elev_db = elev_db.set_index('unique_site_ID')
 
     # Iterate through all the cluster IDs
     for cluster_id in temp_state.cluster_id.unique():
@@ -216,31 +247,52 @@ def create_bw_cluster_subcluster_df(state_alpha,bw_cluster_kmeans):
             bw_long = temp_cluster[temp_cluster['unique_site_ID']==well]['Longitude'].values[0]
             bw_lat = temp_cluster[temp_cluster['unique_site_ID']==well]['Latitude'].values[0]
 
-            try:
-                well_elevation_list.append(elevation(bw_lat,bw_long))
-            except KeyError:
-                print('Something went wrong at well:',bw_lat,bw_long)
-                well_elevation_list.append(0)
+            well_elevation_list.append(elev_db.loc[well].values[0])
+            # try:
+            #     well_elevation_list.append(elevation(bw_lat,bw_long))
+            # except KeyError:
+            #     print('Something went wrong at well:',bw_lat,bw_long)
+            #     well_elevation_list.append(0)
 
             centroid_long_list.append(centroid_long)
             centroid_lat_list.append(centroid_lat) 
 
-            try:
-                centroid_elevation_list.append(elevation(centroid_lat,centroid_long))
-            except KeyError:
-                print('Something went wrong at cluster:',centroid_lat,centroid_long)
-                centroid_elevation_list.append(0)
-
     # Add the sub-cluster id and location
     subcluster_id_list.extend(subcluster_id)
-    subcluster_centroid_long_list.extend(subcluster_centroid_long)
-    subcluster_centroid_lat_list.extend(subcluster_centroid_lat)
+
+    for i in range(0,len(subcluster_centroid_lat)):
+        subcluster_centers_list.append([subcluster_centroid_lat[i],subcluster_centroid_long[i]])
 
     bw_cluster_kmeans['well_elevation'] = well_elevation_list
     bw_cluster_kmeans['centroid_long'] = centroid_long_list
     bw_cluster_kmeans['centroid_lat'] = centroid_lat_list
-    bw_cluster_kmeans['centroid_elevation'] = centroid_elevation_list
     bw_cluster_kmeans['subcluster_id'] = subcluster_id_list
+    bw_cluster_kmeans['subcluster_centers'] = subcluster_centers_list
+
+    
+    # Assign well closest to subcluster centroid as subcluster centroid
+    for cluster_id in bw_cluster_kmeans.cluster_id.unique():
+        centroid_list = []
+        temp_cluster = bw_cluster_kmeans[bw_cluster_kmeans.cluster_id==cluster_id].copy()
+        for subcluster_id in temp_cluster.subcluster_id.unique():
+            temp_subcluster = temp_cluster[temp_cluster.subcluster_id==subcluster_id].copy()
+            subcluster_centroid = select_closest_well_subcluster(temp_subcluster)
+            centroid_list.append(subcluster_centroid)
+
+        # for well in temp_cluster['unique_site_ID'].unique():
+        for idx, row in temp_cluster.iterrows():
+            # Identify the subcluster id
+            temp_subcluster_id = row['subcluster_id']
+            
+            try:
+                subcluster_centroid_long_list.extend(temp_cluster[temp_cluster['unique_site_ID']==centroid_list[temp_subcluster_id]]['Longitude'].values[0])
+                subcluster_centroid_lat_list.extend(temp_cluster[temp_cluster['unique_site_ID']==centroid_list[temp_subcluster_id]]['Latitude'].values[0])
+
+            except:
+                subcluster_centroid_long_list.extend(temp_cluster[temp_cluster['unique_site_ID']==centroid_list[temp_subcluster_id]]['Longitude'].values)
+                subcluster_centroid_lat_list.extend(temp_cluster[temp_cluster['unique_site_ID']==centroid_list[temp_subcluster_id]]['Latitude'].values)        
+
+
     bw_cluster_kmeans['subcluster_long'] = subcluster_centroid_long_list
     bw_cluster_kmeans['subcluster_lat'] = subcluster_centroid_lat_list
 
@@ -251,12 +303,27 @@ def create_bw_cluster_subcluster_df(state_alpha,bw_cluster_kmeans):
 
         dist_km = hs.haversine(cent_loc,subcluster_loc)
         subcluster_dist_list.append(dist_km)
-        try:
-            subcluster_elevation_list.append(elevation(row['subcluster_lat'],row['subcluster_long']))
-        except KeyError:
-            print('Something went wrong at subcluster:',row['subcluster_lat'],row['subcluster_long'])
-            subcluster_elevation_list.append(0)
 
+        # Use well elevation list to find cluster elevation
+        try:
+            temp_elevation_cluster = bw_cluster_kmeans[(bw_cluster_kmeans['Latitude']==row['centroid_lat']) & (bw_cluster_kmeans['Longitude']==row['centroid_long'])]['well_elevation'].values[0]
+        except:
+            temp_elevation_cluster = bw_cluster_kmeans[(bw_cluster_kmeans['Latitude']==row['centroid_lat']) & (bw_cluster_kmeans['Longitude']==row['centroid_long'])]['well_elevation']
+        
+
+        centroid_elevation_list.append(temp_elevation_cluster)
+        
+        # Use well elevation list to find subcluster elevation
+        try:
+            temp_elevation_subcluster = bw_cluster_kmeans[(bw_cluster_kmeans['Latitude']==row['subcluster_lat']) & (bw_cluster_kmeans['Longitude']==row['subcluster_long'])]['well_elevation'].values[0]
+        except:
+            temp_elevation_subcluster = bw_cluster_kmeans[(bw_cluster_kmeans['Latitude']==row['subcluster_lat']) & (bw_cluster_kmeans['Longitude']==row['subcluster_long'])]['well_elevation']
+
+
+        subcluster_elevation_list.append(temp_elevation_subcluster)
+
+
+    bw_cluster_kmeans['centroid_elevation'] = centroid_elevation_list
     bw_cluster_kmeans['subcluster_to_centroid_dist_km'] = subcluster_dist_list
     bw_cluster_kmeans['subcluster_elevation'] = subcluster_elevation_list
 
@@ -658,7 +725,6 @@ def calc_cluster_lcow(condensed_cluster_bw_df,dist_to_dwi = 16.0934):
 
     return condensed_cluster_bw_df
 
-
 # Function to plot map of wells and cluster centroids
 def plot_well_centroid(bw_cluster_kmeans):
     state_df = bw_cluster_kmeans
@@ -739,18 +805,23 @@ def plot_supply_curve(bw_cluster_kmeans,condensed_cluster_bw_df,state_alpha):
     fig, (ax,ax1) = plt.subplots(1,2, figsize = (12,6))
 
     # Without clustering
-    bw_df_temp_sorted_1 = bw_df[bw_df['state_alpha']== state_alpha].sort_values('lcow')
+    bw_df_temp = bw_df[bw_df['state_alpha']== state_alpha].copy()
+    # Calculate total cost
+    # Treatment + brine disposal cost included in lcow 
+    bw_df_temp['lcow_t'] = bw_df_temp['lcow'] + bw_df_temp['well_field_lcow']/(bw_df_temp['recovery']/100)
+
+    bw_df_temp_sorted = bw_df_temp.sort_values('lcow_t')
     colors = plt.cm.get_cmap('tab20b')
     cluster_id_list = []
-    for well in bw_df_temp_sorted_1['unique_site_ID'].unique():
+    for well in bw_df_temp_sorted['unique_site_ID'].unique():
         cluster_id_list.append(bw_cluster_kmeans[bw_cluster_kmeans['unique_site_ID']==well]['cluster_id'].values[0])
 
     # Calculating LCOW as a function of well yield without clustering
-    flow = bw_df_temp_sorted_1['well_yield']*bw_df_temp_sorted_1['recovery']/100
+    flow = bw_df_temp_sorted['well_yield']*bw_df_temp_sorted['recovery']/100
     cum_flow_1 = flow.cumsum()
 
     # Treatment + brine disposal cost included in lcow 
-    lcow_t = bw_df_temp_sorted_1['lcow'] + bw_df_temp_sorted_1['well_field_lcow']/(bw_df_temp_sorted_1['recovery']/100)
+    lcow_t = bw_df_temp_sorted['lcow_t'] 
     cost = lcow_t*flow
     cum_cost_1 = cost.cumsum()
 
