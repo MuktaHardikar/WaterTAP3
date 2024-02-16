@@ -26,6 +26,7 @@ class UnitProcess(WT3UnitProcess):
         self.capacity_needed = self.flow_in * self.storage_duration
         self.chem_dict = {}
         storage_cap = self.a * self.capacity_needed ** self.b
+        # Returns in $
         return storage_cap
 
     def elect(self):
