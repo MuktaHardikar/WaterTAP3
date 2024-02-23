@@ -732,7 +732,8 @@ def plot_well_centroid(bw_cluster_kmeans):
     us_counties = gp.read_file(r'\Users\mhardika\Documents\AMO\GeoToolAll_Methods\GeoData\US_County_Boundaries\US_CountyBndrys.shp')
     us_counties = us_counties.to_crs("EPSG:4326")
     us_states = gp.read_file(r'C:\Users\mhardika\Documents\AMO\2050\analysis_files\tl_rd22_us_state\tl_rd22_us_state.shp')
-
+    us_states = us_states.to_crs("EPSG:4326")
+    
     state_code_df =  pd.read_csv(r'/Users/mhardika/Documents/watertap3/WaterTAP3/watertap3/watertap3/data/state_geocode.csv',index_col='abbv')
     abbv_code = state_df.state_alpha.map(state_code_df.state_id)
 
