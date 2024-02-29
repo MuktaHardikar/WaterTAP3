@@ -73,7 +73,8 @@ def truck_costing(distance, state='TX', wacc = 0.05, plant_lifetime_yrs = 30,fue
     return  (total_fixed_capital_cost + total_variable_cost * distance())
 
 
-def pipe_costing(flow_in, distance, elev_gain = 1e-5, wacc = 0.05, plant_lifetime_yrs = 30,electricity_rate = 0.06,pump_power = 24,pumping_velocity = 3, hour_storage = 6,cost_break_down = False):
+def pipe_costing(flow_in, distance, elev_gain = 1e-5, wacc = 0.05, plant_lifetime_yrs = 30,electricity_rate = 0.06,
+                 pump_power = 24,pumping_velocity = 3, hour_storage = 6,cost_break_down = False):
     '''
     Reference: Marufuzzaman, M., et al. (2015). "Truck versus pipeline transportation cost analysis of wastewater sludge." 
     Transportation Research Part A: Policy and Practice 74: 14-30.
@@ -181,6 +182,7 @@ def pipe_costing(flow_in, distance, elev_gain = 1e-5, wacc = 0.05, plant_lifetim
 
     # Maximum distance between booster pumps with the calculated pressure drop and the feasible pressure range
     lx = (Pmax-Pmin)/(deltaP_grad() + deltaP_elev_gain())
+    
     # Number of booster pumps
     n_booster_pumps = pyunits.convert(distance,to_units = pyunits.m)/lx
     
@@ -191,12 +193,12 @@ def pipe_costing(flow_in, distance, elev_gain = 1e-5, wacc = 0.05, plant_lifetim
     # Total variable capital cost of setting up electrical power lines in $
     booster_power_line_variable_capital_cost = 1.75*((8400*n_booster_pumps)+8400)  #1.32
 
-    total_booster_station_cost = (n_booster_pumps*(building_foundation_capital_cost + booster_pump_capital_cost + 
-                                                   booster_pump_installation_capital_cost + road_access_capital_cost) + booster_power_line_variable_capital_cost)
+    total_booster_station_cost = (n_booster_pumps*(building_foundation_capital_cost + booster_pump_capital_cost() + 
+                                                   booster_pump_installation_capital_cost() + road_access_capital_cost) + booster_power_line_variable_capital_cost)
 
     # Pipe cost in $
     pipe_material_cost = 1200 /pyunits.ton   # updated to HDPE, PVC pipe cost
-    pipe_thickness = 0.05*pipe_diameter() * pyunits.inches
+    pipe_thickness = pyunits.convert(0.05*pipe_diameter,to_units = pyunits.inches)
     pipe_cost_basis = 37.3 #28.2
     pipe_cost = pipe_cost_basis*(pyunits.convert(pipe_diameter,to_units = pyunits.inches)-pipe_thickness)*pipe_thickness*pyunits.convert(distance,to_units=pyunits.mile)*pipe_material_cost
 
@@ -244,22 +246,23 @@ def pipe_costing(flow_in, distance, elev_gain = 1e-5, wacc = 0.05, plant_lifetim
                     'outlet_pump_cost_capital_cost':outlet_pump_cost_capital_cost*capital_recovery_factor/plant_utilization,
                     'road_access_capital_cost': road_access_capital_cost*capital_recovery_factor/plant_utilization,
                     'building_foundation_capital_cost':building_foundation_capital_cost*capital_recovery_factor/plant_utilization,
-                    'booster_pump_capital_cost': booster_pump_capital_cost(),
-                    'booster_pump_installation_capital_cost':booster_pump_installation_capital_cost(),
+                    'booster_pump_capital_cost': booster_pump_capital_cost()*capital_recovery_factor/plant_utilization,
+                    'booster_pump_installation_capital_cost':booster_pump_installation_capital_cost()*capital_recovery_factor/plant_utilization,
                     'n_booster_pumps': n_booster_pumps,
-                    'booster_power_line_variable_capital_cost':booster_power_line_variable_capital_cost,
-                    'pipe_cost': pipe_cost(),
-                    'pipe_construction_cost': pipe_construction_cost(),
-                    'pipe_maintenance_cost':pipe_maintenance_cost(),
-                    'pump_maintenance_cost': pump_maintenance_cost(),
-                    'labor_cost':labor_cost,
+                    'booster_power_line_variable_capital_cost':booster_power_line_variable_capital_cost*capital_recovery_factor/plant_utilization,
+                    'pipe_diameter':pipe_diameter(),
+                    'pipe_cost': pipe_cost()*capital_recovery_factor/plant_utilization,
+                    'pipe_construction_cost': pipe_construction_cost()*capital_recovery_factor/plant_utilization,
+                    'pipe_maintenance_cost':pipe_maintenance_cost()*capital_recovery_factor/plant_utilization,
+                    'pump_maintenance_cost': pump_maintenance_cost()*capital_recovery_factor/plant_utilization,
+                    'labor_cost':labor_cost*capital_recovery_factor/plant_utilization,
                     'total_electricity_cost': total_electricity_cost(),
                     'pipe_road_access_cost_variable_cost': pipe_road_access_cost_variable_cost,
                     'total_inlet_station_fixed_capital_cost': total_inlet_station_fixed_capital_cost()*capital_recovery_factor/plant_utilization,
                     'total_outlet_station_fixed_capital_cost':total_outlet_station_fixed_capital_cost()*capital_recovery_factor/plant_utilization,
                     'total_booster_station_cost':total_booster_station_cost*capital_recovery_factor/plant_utilization,
                     'total_pipe_variable_capital_cost':total_pipe_variable_capital_cost()*capital_recovery_factor/plant_utilization,
-                    'total_onm_costs': total_onm_costs()/plant_utilization,
+                    'total_onm_costs': total_onm_costs(),
                     'capital_recovery_factor':capital_recovery_factor,
                     'plant_utilization':plant_utilization
                          }
