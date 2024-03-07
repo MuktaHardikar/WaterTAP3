@@ -274,7 +274,6 @@ def pipe_costing(flow_in, distance, elev_gain = 1e-5, wacc = 0.05, plant_lifetim
 
 
 
-
 def elevation(lat,lon):
     url = r'https://epqs.nationalmap.gov/v1/json?'
 
