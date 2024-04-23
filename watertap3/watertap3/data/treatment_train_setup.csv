@@ -318,6 +318,39 @@ kbhdp,nawi,dwi,treated_storage,treatment,treated_storage,municipal_drinking,outl
 kbhdp,nawi,dwi,deep_well_injection,waste,deep_well_injection,,,"{'pipe_distance': 22, 'lift_height': 400}"
 kbhdp,nawi,dwi,municipal_drinking,use,municipal_drinking,,,
 ,,,,,,,,
+Brackish Sensitivity,,,,,,,,
+,,,,,,,,
+big_spring,nawi,dwi_check,passthrough,intake,source,deep_well_injection,outlet,{'water_type': ['big_spring_feed']}
+big_spring,nawi,dwi_check,deep_well_injection,treatment,deep_well_injection,"use,waste","outlet,waste","{'pipe_distance': 0, 'lift_height': 400}"
+big_spring,nawi,dwi_check,passthrough,use,use,,,
+big_spring,nawi,dwi_check,passthrough,waste,waste,,,
+,,,,,,,,
+big_spring,nawi,sd_check,passthrough,intake,source,surface_discharge,outlet,{'water_type': ['big_spring_feed']}
+big_spring,nawi,sd_check,surface_discharge,treatment,surface_discharge,"use,waste","outlet,waste",
+big_spring,nawi,sd_check,passthrough,use,use,,,
+big_spring,nawi,sd_check,passthrough,waste,waste,,,
+,,,,,,,,
+big_spring,nawi,bc_check,passthrough,intake,source,brine_concentrator,outlet,{'water_type': ['big_spring_feed']}
+big_spring,nawi,bc_check,brine_concentrator,treatment,brine_concentrator,"use,waste","outlet,waste",
+big_spring,nawi,bc_check,passthrough,use,use,,,
+big_spring,nawi,bc_check,passthrough,waste,waste,,,
+,,,,,,,,
+big_spring,nawi,c_check,passthrough,intake,source,crystallizer,outlet,{'water_type': ['big_spring_feed']}
+big_spring,nawi,c_check,crystallizer,treatment,crystallizer,"use,waste","outlet,waste",
+big_spring,nawi,c_check,passthrough,use,use,,,
+big_spring,nawi,c_check,passthrough,waste,waste,,,
+,,,,,,,,
+big_spring,nawi,ep_check,passthrough,intake,source,evaporation_pond,outlet,{'water_type': ['big_spring_feed']}
+big_spring,nawi,ep_check,evaporation_pond,treatment,evaporation_pond,"use,waste","outlet,waste",
+big_spring,nawi,ep_check,passthrough,use,use,,,
+big_spring,nawi,ep_check,passthrough,waste,waste,,,
+,,,,,,,,
+big_spring,nawi,lf_check,passthrough,intake,source,landfill_zld,outlet,{'water_type': ['big_spring_feed']}
+big_spring,nawi,lf_check,landfill_zld,treatment,landfill_zld,"use,waste","outlet,waste",
+big_spring,nawi,lf_check,passthrough,use,use,,,
+big_spring,nawi,lf_check,passthrough,waste,waste,,,
+,,,,,,,,
+,,,,,,,,
 MUNICIPAL,,,,,,,,
 ,,,,,,,,
 big_spring,nawi,baseline,well_field,intake,well_field,microfiltration,outlet,{'water_type': ['big_spring_feed']}
@@ -328,13 +361,13 @@ big_spring,nawi,baseline,treated_storage,treatment,treated_storage,municipal_dri
 big_spring,nawi,baseline,municipal_drinking,use,municipal_drinking,,,
 big_spring,nawi,baseline,surface_discharge,waste,surface_discharge,,,
 ,,,,,,,,
-big_spring,nawi,dwi_a,well_field,intake,well_field,microfiltration,outlet,{'water_type': ['big_spring_feed']}
+big_spring,nawi,dwi_a,well_field,intake,well_field,microfiltration,outlet,"{'water_type': ['big_spring_feed'],'lift_height': 10}"
 big_spring,nawi,dwi_a,microfiltration,treatment,microfiltration,"reverse_osmosis,deep_well_injection","outlet,waste",
 big_spring,nawi,dwi_a,reverse_osmosis,treatment,reverse_osmosis,"uv_aop,deep_well_injection","outlet,waste",{'erd': 'no'}
 big_spring,nawi,dwi_a,uv_aop,treatment,uv_aop,treated_storage,outlet,"{'chemical_name': 'Hydrogen_Peroxide', 'dose': 5, 'uv_dose': 300, 'aop': True, 'uvt_in': 0.95}"
 big_spring,nawi,dwi_a,treated_storage,treatment,treated_storage,municipal_drinking,outlet,{'hours': 6}
 big_spring,nawi,dwi_a,municipal_drinking,use,municipal_drinking,,,
-big_spring,nawi,dwi_a,deep_well_injection,waste,deep_well_injection,,,"{'pipe_distance': 10, 'lift_height': 400}"
+big_spring,nawi,dwi_a,deep_well_injection,waste,deep_well_injection,,,"{'pipe_distance': 0, 'lift_height': 400}"
 ,,,,,,,,
 big_spring,nawi,dwi_b,well_field,intake,well_field,microfiltration,outlet,{'water_type': ['big_spring_feed']}
 big_spring,nawi,dwi_b,microfiltration,treatment,microfiltration,"ro_first_stage,deep_well_injection","outlet,waste",
@@ -350,7 +383,7 @@ big_spring,nawi,dwi_b,municipal_drinking,use,municipal_drinking,,,
 big_spring,nawi,dwi_b,deep_well_injection,waste,deep_well_injection,,,"{'pipe_distance': 10, 'lift_height': 400}"
 big_spring,nawi,dwi_b,surface_discharge,waste,surface_discharge,,,
 ,,,,,,,,
-big_spring,nawi,zld_a,well_field,intake,well_field,microfiltration,outlet,{'water_type': ['big_spring_feed']}
+big_spring,nawi,zld_a,well_field,intake,well_field,microfiltration,outlet,"{'water_type': ['big_spring_feed'],'lift_height': 10}"
 big_spring,nawi,zld_a,microfiltration,treatment,microfiltration,"ro_first_stage,evaporation_pond","outlet,waste",
 big_spring,nawi,zld_a,reverse_osmosis,treatment,ro_first_stage,"uv_aop,passthrough","outlet,waste",{'erd': 'no'}
 big_spring,nawi,zld_a,basic_unit,treatment,passthrough,ozone,outlet,{'unit_process_name': 'passthrough'}
@@ -379,7 +412,7 @@ big_spring,nawi,zld_b,evaporation_pond,treatment,evaporation_pond,landfill_zld,w
 big_spring,nawi,zld_b,municipal_drinking,use,municipal_drinking,,,
 big_spring,nawi,zld_b,landfill_zld,waste,landfill_zld,,,
 ,,,,,,,,
-big_spring,nawi,zld_c,well_field,intake,well_field,microfiltration,outlet,{'water_type': ['big_spring_feed']}
+big_spring,nawi,zld_c,well_field,intake,well_field,microfiltration,outlet,"{'water_type': ['big_spring_feed'],'lift_height': 10}"
 big_spring,nawi,zld_c,microfiltration,treatment,microfiltration,ro_first_stage,outlet,{'unit_process_name': 'microfiltration'}
 big_spring,nawi,zld_c,reverse_osmosis,treatment,ro_first_stage,"uv_aop,passthrough","outlet,waste",{'erd': 'no'}
 big_spring,nawi,zld_c,basic_unit,treatment,passthrough,ozone,outlet,{'unit_process_name': 'passthrough'}
@@ -592,13 +625,21 @@ beef,nawi,baseline,basic_unit,treatment,anaerobic_digestion_oxidation,"discharge
 beef,nawi,baseline,basic_unit,use,discharge,,,{'unit_process_name': 'passthrough'}
 beef,nawi,baseline,basic_unit,waste,sludge_tank,,,{'unit_process_name': 'sludge_tank'}
 ,,,,,,,,
-monterey_one,nawi,baseline_disp,water_pumping_station,intake,water_pumping_station,coag_and_floc,outlet,"{'water_type': ['secondary_ww'], 'pump_type': 'raw', 'lift_height': 100}"
+monterey_one,nawi,baseline_disp,water_pumping_station,intake,water_pumping_station,coag_and_floc,outlet,"{'water_type': ['surface_water'], 'pump_type': 'raw', 'lift_height': 100}"
 monterey_one,nawi,baseline_disp,coag_and_floc,treatment,coag_and_floc,"dual_media_filtration,landfill","outlet,waste","{'alum_dose' : 10, 'polymer_dose': 0.1}"
 monterey_one,nawi,baseline_disp,basic_unit,treatment,dual_media_filtration,"chlorination,landfill","outlet,waste",{'unit_process_name': 'dual_media_filtration'}
 monterey_one,nawi,baseline_disp,chlorination,treatment,chlorination,treated_storage,outlet,{'chemical_name': 'Chlorine'}
 monterey_one,nawi,baseline_disp,treated_storage,treatment,treated_storage,intrusion_mitigation,outlet,{'hours': 24}
 monterey_one,nawi,baseline_disp,basic_unit,use,intrusion_mitigation,,,{'unit_process_name': 'intrusion_mitigation'}
 monterey_one,nawi,baseline_disp,landfill,waste,landfill,,,
+,,,,,,,,
+monterey_one,nawi,baseline_disp_2050,water_pumping_station,intake,water_pumping_station,coag_and_floc,outlet,"{'water_type': ['surface_water'], 'pump_type': 'raw', 'lift_height': 0.01}"
+monterey_one,nawi,baseline_disp_2050,coag_and_floc,treatment,coag_and_floc,"dual_media_filtration,landfill","outlet,waste","{'alum_dose' : 10, 'polymer_dose': 0.1}"
+monterey_one,nawi,baseline_disp_2050,basic_unit,treatment,dual_media_filtration,"chlorination,landfill","outlet,waste",{'unit_process_name': 'dual_media_filtration'}
+monterey_one,nawi,baseline_disp_2050,chlorination,treatment,chlorination,treated_storage,outlet,{'chemical_name': 'Chlorine'}
+monterey_one,nawi,baseline_disp_2050,treated_storage,treatment,treated_storage,municipal_drinking,outlet,{'hours': 24}
+monterey_one,nawi,baseline_disp_2050,landfill,waste,landfill,,,
+monterey_one,nawi,baseline_disp_2050,municipal_drinking,use,municipal_drinking,,,
 ,,,,,,,,
 monterey_one,nawi,baseline,water_pumping_station,intake,water_pumping_station,coag_and_floc,outlet,"{'water_type': ['secondary_ww'], 'pump_type': 'raw', 'lift_height': 100}"
 monterey_one,nawi,baseline,coag_and_floc,treatment,coag_and_floc,"dual_media_filtration,landfill","outlet,waste","{'alum_dose' : 10, 'polymer_dose': 0.1}"
