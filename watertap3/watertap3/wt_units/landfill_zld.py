@@ -18,8 +18,8 @@ class UnitProcess(WT3UnitProcess):
 
     def fixed_cap(self,unit_params):
         time = self.flowsheet().config.time.first()
-        self.flow_in = pyunits.convert(self.flow_vol_in[time], to_units=pyunits.m ** 3 / pyunits.hr)
-        self.capacity_basis = 302096
+        self.flow_in = pyunits.convert(self.flow_vol_in[time], to_units=pyunits.m ** 3 / pyunits.day)
+        self.capacity_basis = 302096*pyunits.kg/pyunits.day
         self.cap_scaling_exp = 0.7
         self.conc_mass_tot = 0
         for constituent in self.config.property_package.component_list:
@@ -30,7 +30,7 @@ class UnitProcess(WT3UnitProcess):
         landfill_cap = (self.total_mass / self.capacity_basis) ** self.cap_scaling_exp
         # transport_fixed_capital = 3.42
         # if unit_params['distance'] == 0:
-        return landfill_cap
+        return 13.5*landfill_cap
         # else:
             # return landfill_cap + transport_fixed_capital
 
