@@ -72,10 +72,10 @@ class UnitProcess(WT3UnitProcess):
             self.land_clearing_cost = unit_params['land_clearing_cost']
             self.dike_height = unit_params['dike_height']
         except:
-            self.liner_thickness = 50
-            self.land_cost = 5000
-            self.land_clearing_cost = 1000
-            self.dike_height = 8
+            self.liner_thickness = 50    #mil
+            self.land_cost = 5000   # $/acre
+            self.land_clearing_cost = 1000   #$/acra
+            self.dike_height = 8  #ft
 
         self.evaporation_rate(unit_params, t)
         self.evaporation_rate_regress(t)

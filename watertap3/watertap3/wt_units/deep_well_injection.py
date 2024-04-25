@@ -33,15 +33,15 @@ class UnitProcess(WT3UnitProcess):
             self.lift_height.fix(unit_params['lift_height'])
         except:
             self.lift_height.fix(400)
-        self.delta_pressure = self.lift_height[t] * 0.0299
+        self.delta_pressure = self.lift_height[t] * 0.0299 # bar
         self.cap_scaling_exp = 0.7
-        self.cap_scaling_val = 473.2
-        self.well_pump_fixed_cap_cost = 16.9  # this is wells/pumps fixed capital AFTER applying TIC factor -- DOES NOT INCLUDE ANY PIPING
+        self.cap_scaling_val = 473.2  # m3/h
+        self.well_pump_fixed_cap_cost = 16.9  # MM$ this is wells/pumps fixed capital AFTER applying TIC factor -- DOES NOT INCLUDE ANY PIPING
         self.pipe_cost_basis = 35000  # $ / (inch * mile) -- this value taken from produced water case studies in WT3 Excel model
         self.pipe_distance = unit_params['pipe_distance'] * pyunits.miles
         self.pipe_diameter = 8 * pyunits.inches
         self.chem_dict = {}
-        self.pipe_fixed_cap_cost = (self.pipe_cost_basis * self.pipe_distance * self.pipe_diameter) * 1E-6
+        self.pipe_fixed_cap_cost = (self.pipe_cost_basis * self.pipe_distance * self.pipe_diameter) * 1E-6 #MM$
         self.tot_fixed_cap = self.well_pump_fixed_cap_cost + self.pipe_fixed_cap_cost
         cap_scaling_factor = self.flow_in / self.cap_scaling_val
         deep_well_cap = self.tot_fixed_cap * cap_scaling_factor ** self.cap_scaling_exp

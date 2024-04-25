@@ -24,13 +24,20 @@ class UnitProcess(WT3UnitProcess):
         self.conc_mass_tot = 0
         for constituent in self.config.property_package.component_list:
             self.conc_mass_tot += self.conc_mass_in[time, constituent]
-        self.density = 0.6312 * self.conc_mass_tot + 997.86
-        self.total_mass = total_mass = self.density * self.flow_in
+        self.density = 0.6312 * self.conc_mass_tot + 997.86  #kg/m3
+        self.total_mass = total_mass = self.density * self.flow_in  #kg/day
         self.chem_dict = {}
         landfill_cap = (self.total_mass / self.capacity_basis) ** self.cap_scaling_exp
+
+        # Calculate fixed required land area
+        self.wet_solids_flow_rate = total_mass/1000 # Convert kg/day to metric tonne per day
+        ratio_acre_flow_rate = 0.2 #acre/ (MT/day) Taking an average value
+        self.required_area = ratio_acre_flow_rate*self.wet_solids_flow_rate
+        cost_per_acre = 0.25   #MM$/acre based on 2007
+        self.fixed_capital_basis = cost_per_acre*self.required_area  #MM$
         # transport_fixed_capital = 3.42
         # if unit_params['distance'] == 0:
-        return 13.5*landfill_cap
+        return self.fixed_capital_basis*landfill_cap
         # else:
             # return landfill_cap + transport_fixed_capital
 
