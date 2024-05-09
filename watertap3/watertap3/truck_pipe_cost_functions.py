@@ -5,7 +5,8 @@ import pandas as pd
 import requests
 import urllib
 
-def truck_costing(distance, state='TX', wacc = 0.05, plant_lifetime_yrs = 30,fuel_price_file_path = '/Users/mhardika/Documents/watertap3/WaterTAP3/watertap3/watertap3/data/fuel_costs.csv'):
+def truck_costing(distance, state='TX', wacc = 0.05, plant_lifetime_yrs = 30,
+                  fuel_price_file_path = '/Users/mhardika/Documents/watertap3/WaterTAP3/watertap3/watertap3/data/fuel_costs.csv'):
     '''
     Reference: 
     Marufuzzaman, M., et al. (2015). "Truck versus pipeline transportation cost analysis of wastewater sludge." 
@@ -40,7 +41,7 @@ def truck_costing(distance, state='TX', wacc = 0.05, plant_lifetime_yrs = 30,fue
     insurance_cost = 8726  #$
 
     distance_basis = 100000 # miles
-    annual_trips_basis = 500  
+    annual_trips_basis = 500  # trips/year
     volume_basis  = truck_capacity*annual_trips_basis  #m3
 
     total_fixed_capital_cost = (cost_ownership + annual_sales_tax + license_fees_taxes 
@@ -53,7 +54,7 @@ def truck_costing(distance, state='TX', wacc = 0.05, plant_lifetime_yrs = 30,fue
     plant_lifetime_yrs_1 = 30
     capital_recovery_factor_1 = (wacc_1 * (1 + wacc_1) ** plant_lifetime_yrs_1) / (((1 + wacc_1) ** plant_lifetime_yrs_1) - 1)
 
-    total_fixed_capital_cost = total_fixed_capital_cost * capital_recovery_factor / capital_recovery_factor_1
+    total_fixed_capital_cost = total_fixed_capital_cost * capital_recovery_factor / capital_recovery_factor_1/plant_utilization
     
 
     # Variable cost components
@@ -68,7 +69,7 @@ def truck_costing(distance, state='TX', wacc = 0.05, plant_lifetime_yrs = 30,fue
     tire_cost = 0.04  #$/mile
 
     total_variable_cost = (fuel_cost_mile + labor_cost + 
-                           maintenance_repair_cost + tire_cost )/truck_capacity   #$/mile/m3
+                           maintenance_repair_cost + tire_cost)/truck_capacity   #$/mile/m3
 
     return  (total_fixed_capital_cost + total_variable_cost * distance())
 
