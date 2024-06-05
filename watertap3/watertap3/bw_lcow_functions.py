@@ -33,10 +33,10 @@ bw_df = pd.read_csv('/Users/mhardika/Documents/AMO/GeoToolAll_Methods/Water Sour
 def form_cluster(df,n_clusters = 3):
 
     kmeans = KMeans(n_clusters = n_clusters, init ='k-means++', random_state=42)
-    kmeans.fit(df[df.columns[2:4]])  # Compute k-means clustering.
-    
+    # Columns passed are latitude, longitude and well yield
+    kmeans.fit(df[df.columns[2:4]],sample_weight=df[df.columns[6]])  # Compute k-means clustering.
     # Assign cluster IDs to the column
-    df['cluster_id'] = kmeans.fit_predict(df[df.columns[2:4]])
+    df['cluster_id'] = kmeans.fit_predict(df[df.columns[2:4]],sample_weight=df[df.columns[6]])
 
     # Coordinates of cluster centers.
     centers = kmeans.cluster_centers_
@@ -139,7 +139,7 @@ def select_closest_well(df):
     
     return well
 
-# Function to find well closest to the center of the cluster
+# Function to find well closest to the center of the cluster within a subcluster
 def select_closest_well_subcluster(df):
     max_dist = 1000
 
@@ -235,7 +235,13 @@ def create_bw_cluster_subcluster_df(state_alpha,bw_cluster_kmeans):
     # Iterate through all the cluster IDs
     for cluster_id in temp_state.cluster_id.unique():
         temp_cluster = temp_state[temp_state.cluster_id==cluster_id].copy()
-        centroid_well = select_closest_well(temp_cluster)
+
+        # Select the well closest to the centroid
+        # centroid_well = select_closest_well(temp_cluster)
+
+        # Select well with highest well yield
+        idx = temp_cluster['well_yield'].idxmax()
+        centroid_well = temp_cluster.loc[idx]['unique_site_ID']
 
         centroid_long = temp_cluster[temp_cluster['unique_site_ID']==centroid_well]['Longitude'].values[0]
         centroid_lat = temp_cluster[temp_cluster['unique_site_ID']==centroid_well]['Latitude'].values[0]
@@ -272,12 +278,20 @@ def create_bw_cluster_subcluster_df(state_alpha,bw_cluster_kmeans):
     
     # Assign well closest to subcluster centroid as subcluster centroid
     for cluster_id in bw_cluster_kmeans.cluster_id.unique():
-        centroid_list = []
+        subcluster_centroid_list = []
         temp_cluster = bw_cluster_kmeans[bw_cluster_kmeans.cluster_id==cluster_id].copy()
         for subcluster_id in temp_cluster.subcluster_id.unique():
             temp_subcluster = temp_cluster[temp_cluster.subcluster_id==subcluster_id].copy()
-            subcluster_centroid = select_closest_well_subcluster(temp_subcluster)
-            centroid_list.append(subcluster_centroid)
+
+            # Select the well closest to the centroid
+            # subcluster_centroid = select_closest_well_subcluster(temp_subcluster)
+
+            # Select well with highest well yield
+            idx = temp_subcluster['well_yield'].idxmax()
+            subcluster_centroid = temp_subcluster.loc[idx]['unique_site_ID']
+
+            subcluster_centroid_list.append(subcluster_centroid)
+
 
         # for well in temp_cluster['unique_site_ID'].unique():
         for idx, row in temp_cluster.iterrows():
@@ -285,12 +299,12 @@ def create_bw_cluster_subcluster_df(state_alpha,bw_cluster_kmeans):
             temp_subcluster_id = row['subcluster_id']
             
             try:
-                subcluster_centroid_long_list.extend(temp_cluster[temp_cluster['unique_site_ID']==centroid_list[temp_subcluster_id]]['Longitude'].values[0])
-                subcluster_centroid_lat_list.extend(temp_cluster[temp_cluster['unique_site_ID']==centroid_list[temp_subcluster_id]]['Latitude'].values[0])
+                subcluster_centroid_long_list.extend(temp_cluster[temp_cluster['unique_site_ID']==subcluster_centroid_list[temp_subcluster_id]]['Longitude'].values[0])
+                subcluster_centroid_lat_list.extend(temp_cluster[temp_cluster['unique_site_ID']==subcluster_centroid_list[temp_subcluster_id]]['Latitude'].values[0])
 
             except:
-                subcluster_centroid_long_list.extend(temp_cluster[temp_cluster['unique_site_ID']==centroid_list[temp_subcluster_id]]['Longitude'].values)
-                subcluster_centroid_lat_list.extend(temp_cluster[temp_cluster['unique_site_ID']==centroid_list[temp_subcluster_id]]['Latitude'].values)        
+                subcluster_centroid_long_list.extend(temp_cluster[temp_cluster['unique_site_ID']==subcluster_centroid_list[temp_subcluster_id]]['Longitude'].values)
+                subcluster_centroid_lat_list.extend(temp_cluster[temp_cluster['unique_site_ID']==subcluster_centroid_list[temp_subcluster_id]]['Latitude'].values)        
 
 
     bw_cluster_kmeans['subcluster_long'] = subcluster_centroid_long_list

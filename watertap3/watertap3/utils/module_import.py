@@ -107,6 +107,9 @@ def get_module(module_name):
     if module_name == 'deep_well_injection':
         import wt_units.deep_well_injection as up
 
+    if module_name == 'deep_well_injection_detailed':
+        import wt_units.deep_well_injection_detailed as up        
+
     if module_name == 'anion_exchange':
         import wt_units.anion_exchange as up
 

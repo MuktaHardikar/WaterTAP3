@@ -43,9 +43,11 @@ class UnitProcess(WT3UnitProcess):
         self.chem_dict = {}
         self.pipe_fixed_cap_cost = (self.pipe_cost_basis * self.pipe_distance * self.pipe_diameter) * 1E-6 #MM$
         self.tot_fixed_cap = self.well_pump_fixed_cap_cost + self.pipe_fixed_cap_cost
-        cap_scaling_factor = self.flow_in / self.cap_scaling_val
-        deep_well_cap = self.tot_fixed_cap * cap_scaling_factor ** self.cap_scaling_exp
-        return deep_well_cap
+        self.cap_scaling_factor = self.flow_in / self.cap_scaling_val
+        self.deep_well_cap = self.tot_fixed_cap * self.cap_scaling_factor ** self.cap_scaling_exp
+        return self.deep_well_cap
+
+
 
     def elect(self):
         '''
@@ -59,8 +61,8 @@ class UnitProcess(WT3UnitProcess):
         time = self.flowsheet().config.time
         self.pump_eff = 0.9
         self.motor_eff = 0.9
-        flow_in_gpm = pyunits.convert(self.flow_in, to_units=(pyunits.gallon / pyunits.minute))
-        electricity = (0.746 * flow_in_gpm * self.lift_height[t] / (3960 * self.pump_eff * self.motor_eff)) / self.flow_in
+        self.flow_in_gpm = pyunits.convert(self.flow_in, to_units=(pyunits.gallon / pyunits.minute))
+        electricity = (0.746 * self.flow_in_gpm * self.lift_height[t] / (3960 * self.pump_eff * self.motor_eff)) / self.flow_in
         return electricity
 
     def get_costing(self, unit_params=None, year=None):

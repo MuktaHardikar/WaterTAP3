@@ -31,7 +31,7 @@ class UnitProcess(WT3UnitProcess):
 
         # Calculate fixed required land area
         self.wet_solids_flow_rate = total_mass/1000 # Convert kg/day to metric tonne per day
-        ratio_acre_flow_rate = 0.2 #acre/ (MT/day) Taking an average value
+        ratio_acre_flow_rate = 0.3 # acre/ (MT/day) Assuming 85% solids ratio
         self.required_area = ratio_acre_flow_rate*self.wet_solids_flow_rate
         cost_per_acre = 0.25   #MM$/acre based on 2007
         self.fixed_capital_basis = cost_per_acre*self.required_area  #MM$

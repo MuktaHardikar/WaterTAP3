@@ -304,7 +304,7 @@ kbhdp,nawi,zld_c,crystallizer,treatment,crystallizer,"treated_storage,landfill_z
 kbhdp,nawi,zld_c,landfill_zld,waste,landfill_zld,,,
 kbhdp,nawi,zld_c,municipal_drinking,use,municipal_drinking,,,
 ,,,,,,,,
-kbhdp,nawi,dwi,well_field,intake,well_field,"caustic_soda_addition,media_filtration","outlet,outlet","{'water_type': ['kbhdp_brackish_ave'], 'split_fraction': [0.393, 0.607]}"
+kbhdp,nawi,dwi,well_field,intake,well_field,"caustic_soda_addition,media_filtration","outlet,outlet","{'water_type': ['kbhdp_brackish_ave'],'split_fraction': [0.393, 0.607]}"
 kbhdp,nawi,dwi,media_filtration,treatment,media_filtration,cartridge_filtration,outlet,
 kbhdp,nawi,dwi,cartridge_filtration,treatment,cartridge_filtration,anti_scalant_addition,outlet,
 kbhdp,nawi,dwi,anti_scalant_addition,treatment,anti_scalant_addition,ro_first_stage,outlet,{'dose': 5}
@@ -315,10 +315,20 @@ kbhdp,nawi,dwi,reverse_osmosis,treatment,ro_second_stage,"caustic_soda_addition,
 kbhdp,nawi,dwi,caustic_soda_addition,treatment,caustic_soda_addition,chlorination,outlet,{'dose': 30}
 kbhdp,nawi,dwi,chlorination,treatment,chlorination,treated_storage,outlet,{'chemical_name': 'Chlorine'}
 kbhdp,nawi,dwi,treated_storage,treatment,treated_storage,municipal_drinking,outlet,{'hours': 12}
-kbhdp,nawi,dwi,deep_well_injection,waste,deep_well_injection,,,"{'pipe_distance': 22, 'lift_height': 400}"
+kbhdp,nawi,dwi,deep_well_injection_detailed,waste,deep_well_injection,,,{'lift_height': 400}
 kbhdp,nawi,dwi,municipal_drinking,use,municipal_drinking,,,
 ,,,,,,,,
+big_spring,nawi,well_cluster,well_field,intake,well_field,anti_scalant_addition_transport,outlet,{'water_type': ['big_spring_feed']}
+big_spring,nawi,well_cluster,anti_scalant_addition,treatment,anti_scalant_addition_transport,"use,waste","outlet,waste",{'dose': 3}
+big_spring,nawi,well_cluster,passthrough,use,use,,,
+big_spring,nawi,well_cluster,passthrough,waste,waste,,,
+,,,,,,,,
 Brackish Sensitivity,,,,,,,,
+,,,,,,,,
+big_spring,nawi,dwi_detailed_check,passthrough,intake,source,deep_well_injection_detailed,outlet,{'water_type': ['big_spring_feed']}
+big_spring,nawi,dwi_detailed_check,deep_well_injection_detailed,treatment,deep_well_injection_detailed,"use,waste","outlet,waste",{ 'lift_height': 400}
+big_spring,nawi,dwi_detailed_check,passthrough,use,use,,,
+big_spring,nawi,dwi_detailed_check,passthrough,waste,waste,,,
 ,,,,,,,,
 big_spring,nawi,dwi_check,passthrough,intake,source,deep_well_injection,outlet,{'water_type': ['big_spring_feed']}
 big_spring,nawi,dwi_check,deep_well_injection,treatment,deep_well_injection,"use,waste","outlet,waste","{'pipe_distance': 0, 'lift_height': 400}"

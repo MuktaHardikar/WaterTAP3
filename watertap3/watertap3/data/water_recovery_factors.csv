@@ -49,6 +49,7 @@ default,,cooling_tower,0.25,
 default,,crystallizer,0.95,Default value based on 5% purge rate per source. Survey of High-Recovery and Zero Liquid Discharge Technologies for Water Utilities (2008).
 default,,decarbonator,0.9999,Survey of High-Recovery and Zero Liquid Discharge Technologies for Water Utilities (2008).
 default,,deep_well_injection,0.9999,Texas Water Development Board IT3PR User Manual
+default,,deep_well_injection_detailed,0.9999,
 default,,discharge,0.9999,Beef Processing case study. 
 default,,dissolved_air_flotation,0.9999,"(1) https://www.engineeringtoolbox.com/water-pumping-costs-d_1527.html, (2) https://onlinelibrary.wiley.com/doi/pdf/10.1002/9780470260036.ch5, (3) Cost Estimating Manual for Water Treatment Facilities (McGivney/Kawamura)"
 default,,drainage_sump_pump1,0.9999,"(1) https://www.engineeringtoolbox.com/water-pumping-costs-d_1527.html, (2) https://onlinelibrary.wiley.com/doi/pdf/10.1002/9780470260036.ch5, (3) Cost Estimating Manual for Water Treatment Facilities (McGivney/Kawamura)"
