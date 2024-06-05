@@ -279,7 +279,6 @@ irwin,baseline,irwin_brine,tds,7.09923664,kg/m3,nawi
 kbhdp,baseline,kbhdp_brackish_ave,flow,1.336278,m3/s,nawi
 kbhdp,baseline,kbhdp_brackish_ave,ph_max,7.6,pH,nawi
 kbhdp,baseline,kbhdp_brackish_ave,ph_min,7.6,pH,nawi
-kbhdp,baseline,kbhdp_brackish_ave,sulfate,0.23,kg/m3,nawi
 kbhdp,baseline,kbhdp_brackish_ave,tds,2.5,kg/m3,nawi
 kbhdp,baseline,kbhdp_brackish_high,alkalinity_as_caco3,0.0825,kg/m3,nawi
 kbhdp,baseline,kbhdp_brackish_high,calcium,0.145,kg/m3,nawi
