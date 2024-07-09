@@ -5,7 +5,7 @@ import pandas as pd
 import requests
 import urllib
 
-def truck_costing(distance, state='TX', wacc = 0.05, plant_lifetime_yrs = 30,
+def truck_costing(flow_in, distance, state='TX', labor_rate_per_mile = 0.44, wacc = 0.05, plant_lifetime_yrs = 30, cost_break_down = False,
                   fuel_price_file_path = '/Users/mhardika/Documents/watertap3/WaterTAP3/watertap3/watertap3/data/fuel_costs.csv'):
     '''
     Reference: 
@@ -16,36 +16,43 @@ def truck_costing(distance, state='TX', wacc = 0.05, plant_lifetime_yrs = 30,
 
     Wastewater treatment plan owned truck cost function
     This function returns LCOW of transportation using trucks as a function distance and state (cost of fuel)
-    
+    This function assumes facility owned truck
+
     '''
 
     if distance == 0:
         return 0
     distance = distance*pyunits.km
     distance = pyunits.convert(distance,to_units = pyunits.miles)
+
+    flow_in = flow_in*pyunits.m**3/pyunits.day
+    
+    # Assumed truck capacity based on main reference
     truck_capacity = 30    #m3
+
+    # Assumed loading and unloading rates based on main reference
     loading_unloading_rate = 0.8*60    #m3/h
     loading_unloading_time = truck_capacity/loading_unloading_rate  #h
-    additional_loading_unloading_time = 20/60   #h
+    # additional_loading_unloading_time = 20/60   #h
     days_operation = 365
-    plant_utilization = days_operation/365
+    plant_utilization = 0.5 #days_operation/365
 
-    total_loading_unloading_time = 2*loading_unloading_time + additional_loading_unloading_time
+    total_loading_unloading_time = 2*loading_unloading_time
 
     # Fixed cost components
+    # Updated dollar value from 2015 to 2023
+    cost_ownership = 34466 #26810   #$ --> The salvage value is already deducted so the capital recovery factor was not included for the truck fixed capital cost
+    annual_sales_tax =  925 #720   #$
+    license_fees_taxes = 2681 #2086  #$
+    management_overhead = 16738 #13020  #$
+    insurance_cost = 11217 #8726  #$
 
-    cost_ownership = 26810   #$ --> The salvage value is already deducted so the capital recovery factor was not included for the truck fixed capital cost
-    annual_sales_tax = 720   #$
-    license_fees_taxes = 2086  #$
-    management_overhead = 13020  #$
-    insurance_cost = 8726  #$
 
-    distance_basis = 100000 # miles
-    annual_trips_basis = 500  # trips/year
-    volume_basis  = truck_capacity*annual_trips_basis  #m3
-
+    # Changed denominator to be annual volume transport
+    
+    annual_volume = pyunits.convert(flow_in, to_units=pyunits.m**3/pyunits.year)
     total_fixed_capital_cost = (cost_ownership + annual_sales_tax + license_fees_taxes 
-                                + management_overhead + insurance_cost)/volume_basis # $/m3
+                                + management_overhead + insurance_cost)/annual_volume() # $/m3
     
     capital_recovery_factor = (wacc * (1 + wacc) ** plant_lifetime_yrs) / (((1 + wacc) ** plant_lifetime_yrs) - 1)
 
@@ -54,7 +61,8 @@ def truck_costing(distance, state='TX', wacc = 0.05, plant_lifetime_yrs = 30,
     plant_lifetime_yrs_1 = 30
     capital_recovery_factor_1 = (wacc_1 * (1 + wacc_1) ** plant_lifetime_yrs_1) / (((1 + wacc_1) ** plant_lifetime_yrs_1) - 1)
 
-    total_fixed_capital_cost = total_fixed_capital_cost * capital_recovery_factor / capital_recovery_factor_1/plant_utilization
+    # Adjusting the fixed capital cost to have the current analysis CRF and plant utilization
+    total_fixed_capital_cost = total_fixed_capital_cost * capital_recovery_factor/capital_recovery_factor_1/plant_utilization
     
 
     # Variable cost components
@@ -62,20 +70,33 @@ def truck_costing(distance, state='TX', wacc = 0.05, plant_lifetime_yrs = 30,
     # reading fuel costs as a function of state
     fuel_df = pd.read_csv(fuel_price_file_path)
     fuel_price = fuel_df.loc[fuel_df['state_code']==state]['diesel_cost'].values[0] #$/gal --> function of state
-    mileage = 5.85 #gal/mil (average of 5.1 and 6.6)
-    fuel_cost_mile = fuel_price/mileage #$/mile
-    labor_cost = 0.82 #$/mile
-    maintenance_repair_cost = 0.17 #$/mile
-    tire_cost = 0.04  #$/mile
+    mileage = 5.85   #gal/mil (average of 5.1 and 6.6)
+    fuel_cost_mile = fuel_price/mileage   #$/mile
+    maintenance_repair_cost = 0.23 #0.17 #$/mile
+    tire_cost = 0.05 # 0.04 #$/mile
+
+    labor_rate_per_mile = labor_rate_per_mile  #$/mile Default value (0.34) adjust to 2023 USD
+    wait_time = total_loading_unloading_time # h Removed the additional time for loading
+    avg_speed = 40 #miles/h
+    labor_perh = 20.57 #16 #$/h
+    # labor_cost = 0.82 #$/mile
+
+    labor_cost = labor_rate_per_mile + (((distance()/avg_speed) + wait_time)*labor_perh)/(distance())
 
     total_variable_cost = (fuel_cost_mile + labor_cost + 
-                           maintenance_repair_cost + tire_cost)/truck_capacity   #$/mile/m3
+                           maintenance_repair_cost + tire_cost)/truck_capacity/plant_utilization  #$/mile/m3
+    
+    if cost_break_down == True:
+        breakdown = {'fixed cost': total_fixed_capital_cost,
+                     'variable_cost': total_variable_cost}
 
-    return  (total_fixed_capital_cost + total_variable_cost * distance())
+        return breakdown
+    else:
+        return  (total_fixed_capital_cost + total_variable_cost * distance())
 
 
 def pipe_costing(flow_in, distance, elev_gain = 1e-5, wacc = 0.05, plant_lifetime_yrs = 30,electricity_rate = 0.06,
-                 pump_power = 24,pumping_velocity = 3, hour_storage = 6,cost_break_down = False):
+                 pump_power = 24, pumping_velocity = 3, hour_storage = 6,cost_break_down = False):
     '''
     Reference: Marufuzzaman, M., et al. (2015). "Truck versus pipeline transportation cost analysis of wastewater sludge." 
     Transportation Research Part A: Policy and Practice 74: 14-30.
@@ -123,6 +144,8 @@ def pipe_costing(flow_in, distance, elev_gain = 1e-5, wacc = 0.05, plant_lifetim
     storage_capacity = storage_duration*pyunits.convert(flow_in,to_units = pyunits.m**3/pyunits.h)
     # Storage capital cost in $
     storage_tank_capital_cost = 1e6*a*storage_capacity**b
+    # storage_capacity = 3*560 #m3
+    # storage_tank_capital_cost = 2e6*(storage_capacity/9400)**0.65
 
     # Fitting valve capital cost in $
     pipe_csa = pyunits.convert(flow_in,to_units = pyunits.m**3/pyunits.s)/pumping_velocity
@@ -160,7 +183,6 @@ def pipe_costing(flow_in, distance, elev_gain = 1e-5, wacc = 0.05, plant_lifetim
 
     # Total fixed capital cost - $
     total_fixed_capital_cost = (total_inlet_station_fixed_capital_cost + total_outlet_station_fixed_capital_cost)
-
 
 
     # Variable Capital Costs
